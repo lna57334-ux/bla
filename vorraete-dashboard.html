@@ -306,6 +306,95 @@
 
   #import-file{ display:none; }
 
+  /* --- Mic / voice input --- */
+  .input-with-btn{
+    display:flex; gap:6px; align-items:stretch;
+  }
+  .input-with-btn input{ flex:1; min-width:0; }
+  .mic-btn, .cam-btn{
+    flex-shrink:0;
+    min-width:44px;
+    padding: 0 10px;
+    font-size:1.1rem;
+    background:#fff;
+  }
+  .mic-btn.listening{
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger);
+  }
+  .dictate-row{
+    grid-column: 1/-1;
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+    margin-bottom:-4px;
+  }
+  .transcript-hint{
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .unsupported-note{
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* --- Photo capture --- */
+  .photo-field{ grid-column: 1/-1; }
+  .photo-row{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .photo-preview{
+    width: 72px; height: 72px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    display:none;
+    cursor:pointer;
+  }
+  .photo-preview.show{ display:block; }
+  #remove-photo-btn{ display:none; }
+  #remove-photo-btn.show{ display:inline-block; }
+
+  .item-photo-thumb{
+    width: 52px; height: 52px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .badge.barcode{
+    font-family: "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.02em;
+  }
+
+  /* --- Camera modal --- */
+  #camera-modal{
+    display:none;
+    position: fixed; inset:0;
+    background: rgba(10,15,10,0.85);
+    z-index: 100;
+    align-items:center; justify-content:center;
+    flex-direction: column;
+    padding: 16px;
+  }
+  #camera-modal.open{ display:flex; }
+  #camera-video{
+    width: 100%;
+    max-width: 480px;
+    max-height: 60vh;
+    background:#000;
+    border-radius: 12px;
+  }
+  #camera-status{
+    color:#fff; margin-top:12px; text-align:center; font-size:0.95rem;
+  }
+  #camera-modal .form-actions{ margin-top:14px; }
+  #camera-close-btn{
+    background:#fff;
+  }
+
   @media (max-width: 480px){
     header.app-header h1{ font-size:1.4rem; }
     .wrap{ padding: 10px 10px 80px; }
@@ -327,7 +416,10 @@
     <div class="controls-grid">
       <div class="field">
         <label for="search-input">Suche nach Name</label>
-        <input type="search" id="search-input" placeholder="z. B. Kartoffeln">
+        <div class="input-with-btn">
+          <input type="search" id="search-input" placeholder="z. B. Kartoffeln">
+          <button type="button" class="mic-btn" id="search-mic-btn" title="Sprachsuche" aria-label="Sprachsuche">🎤</button>
+        </div>
       </div>
       <div class="field">
         <label for="filter-kategorie">Kategorie</label>
@@ -370,6 +462,11 @@
     <div id="form-panel">
       <h3 id="form-title" style="margin-top:0;">Neuer Eintrag</h3>
       <form id="item-form">
+        <div class="dictate-row">
+          <button type="button" class="mic-btn" id="dictate-btn" title="Eintrag per Sprache diktieren">🎤 Diktieren</button>
+          <span class="transcript-hint" id="dictate-hint">z. B. „drei Kilo Kartoffeln, Keller“</span>
+        </div>
+
         <div class="field">
           <label for="f-name">Name *</label>
           <input type="text" id="f-name" required placeholder="z. B. Karotten">
@@ -407,6 +504,14 @@
           <select id="f-lagerort" required></select>
         </div>
         <div class="field">
+          <label for="f-barcode">Barcode</label>
+          <div class="input-with-btn">
+            <input type="text" id="f-barcode" inputmode="numeric" placeholder="wird beim Scan ausgefüllt">
+            <button type="button" class="cam-btn" id="scan-barcode-btn" title="Barcode scannen" aria-label="Barcode scannen">📷</button>
+          </div>
+          <div class="unsupported-note" id="barcode-unsupported-note" style="display:none;">Barcode-Scan wird von diesem Browser nicht unterstützt (z. B. in Chrome/Edge verfügbar).</div>
+        </div>
+        <div class="field">
           <label class="checkbox-field" for="f-eigenanbau" style="margin-top:22px;">
             <input type="checkbox" id="f-eigenanbau"> Eigener Anbau
           </label>
@@ -414,6 +519,16 @@
         <div class="field" id="erntedatum-field" style="display:none;">
           <label for="f-erntedatum">Erntedatum</label>
           <input type="date" id="f-erntedatum">
+        </div>
+
+        <div class="field photo-field">
+          <label>Foto (optional)</label>
+          <div class="photo-row">
+            <img id="photo-preview" class="photo-preview" alt="Vorschau des Eintragsfotos">
+            <button type="button" id="capture-photo-btn">📸 Foto aufnehmen</button>
+            <button type="button" class="ghost small" id="remove-photo-btn">Foto entfernen</button>
+            <input type="file" id="photo-file-input" accept="image/*" capture="environment">
+          </div>
         </div>
 
         <div class="form-actions">
@@ -431,7 +546,8 @@
     <button type="button" id="export-btn">⬇️ Als JSON exportieren</button>
     <button type="button" id="import-btn">⬆️ JSON importieren</button>
     <input type="file" id="import-file" accept="application/json,.json">
-    <div class="hint">Alle Daten liegen ausschließlich lokal in diesem Browser (localStorage). Kein Server, keine Cloud.</div>
+    <div class="hint">Alle Daten liegen ausschließlich lokal in diesem Browser (localStorage). Kein Server, keine Cloud.<br>
+    Hinweis: Der Barcode-Scan läuft rein lokal im Browser. Die Spracheingabe nutzt die Spracherkennung deines Browsers &ndash; je nach Browser (z. B. Chrome) kann dafür kurzzeitig eine Internetverbindung nötig sein, um Audio in Text umzuwandeln; deine Vorratsdaten selbst verlassen dieses Gerät dabei nicht.</div>
   </footer>
 
 </div>
@@ -441,12 +557,24 @@
   <button type="button" id="toast-undo-btn">Rückgängig</button>
 </div>
 
+<div id="camera-modal">
+  <video id="camera-video" autoplay playsinline muted></video>
+  <canvas id="camera-canvas" style="display:none;"></canvas>
+  <div id="camera-status">Richte die Kamera auf den Barcode&hellip;</div>
+  <div class="form-actions">
+    <button type="button" id="camera-close-btn">Abbrechen</button>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
 
   var STORAGE_KEY = "vorratsdashboard_v1";
+  var BARCODE_STORAGE_KEY = "vorratsdashboard_barcodes_v1";
   var SOON_DAYS = 7;
+  var PHOTO_MAX_SIZE = 320;
+  var PHOTO_QUALITY = 0.6;
 
   var KATEGORIEN = ["Gemüse", "Obst", "Getreide", "Konserven", "Tiefkühl", "Gewürze", "Sonstiges"];
   var LAGERORTE = ["Keller", "Kühlschrank", "Gefrierfach", "Speisekammer", "Sonstiger Ort"];
@@ -455,6 +583,8 @@
     items: [],
     editingId: null
   };
+
+  var formPhotoData = "";
 
   var filters = {
     search: "",
@@ -491,6 +621,35 @@
       console.error("Konnte Daten nicht speichern:", e);
       alert("Achtung: Die Daten konnten nicht gespeichert werden (localStorage voll oder blockiert).");
     }
+  }
+
+  function loadBarcodeMap(){
+    try{
+      var raw = localStorage.getItem(BARCODE_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){
+      return {};
+    }
+  }
+
+  function saveBarcodeMap(map){
+    try{
+      localStorage.setItem(BARCODE_STORAGE_KEY, JSON.stringify(map));
+    }catch(e){
+      console.error("Konnte Barcode-Zuordnung nicht speichern:", e);
+    }
+  }
+
+  function rememberBarcode(barcode, item){
+    if(!barcode) return;
+    var map = loadBarcodeMap();
+    map[barcode] = {
+      name: item.name,
+      kategorie: item.kategorie,
+      einheit: item.einheit,
+      lagerort: item.lagerort
+    };
+    saveBarcodeMap(map);
   }
 
   // ---------- Helpers ----------
@@ -688,6 +847,12 @@
     var growBadge = item.eigenanbau
       ? '<span class="badge grow">🌱 Eigenanbau' + (item.erntedatum ? " · geerntet " + formatDateDE(item.erntedatum) : "") + '</span>'
       : "";
+    var barcodeBadge = item.barcode
+      ? '<span class="badge barcode">🏷️ ' + escapeHtml(item.barcode) + '</span>'
+      : "";
+    var photoThumb = item.foto
+      ? '<img class="item-photo-thumb" src="' + item.foto + '" data-action="view-photo" data-id="' + item.id + '" alt="Foto von ' + escapeHtml(item.name) + '">'
+      : "";
 
     var step = getStep(item.einheit);
 
@@ -699,9 +864,10 @@
             '<div class="badges">' +
               '<span class="badge">' + escapeHtml(item.kategorie) + '</span>' +
               '<span class="badge">📍 ' + escapeHtml(item.lagerort) + '</span>' +
-              growBadge +
+              growBadge + barcodeBadge +
             '</div>' +
           '</div>' +
+          photoThumb +
         '</div>' +
         '<div class="qty-row">' +
           '<button type="button" class="qty-btn" data-action="dec" data-id="' + item.id + '" data-step="' + step + '" aria-label="Menge verringern">&minus;</button>' +
@@ -734,6 +900,21 @@
   var formTitle = document.getElementById("form-title");
   var eigenanbauCheckbox = document.getElementById("f-eigenanbau");
   var erntedatumField = document.getElementById("erntedatum-field");
+  var photoPreview = document.getElementById("photo-preview");
+  var removePhotoBtn = document.getElementById("remove-photo-btn");
+
+  function setFormPhoto(dataUrl){
+    formPhotoData = dataUrl || "";
+    if(formPhotoData){
+      photoPreview.src = formPhotoData;
+      photoPreview.classList.add("show");
+      removePhotoBtn.classList.add("show");
+    } else {
+      photoPreview.src = "";
+      photoPreview.classList.remove("show");
+      removePhotoBtn.classList.remove("show");
+    }
+  }
 
   function openForm(item){
     state.editingId = item ? item.id : null;
@@ -746,9 +927,11 @@
     document.getElementById("f-einheit").value = item ? item.einheit : "";
     document.getElementById("f-mhd").value = item ? (item.mhd || "") : "";
     document.getElementById("f-lagerort").value = item ? item.lagerort : LAGERORTE[0];
+    document.getElementById("f-barcode").value = item ? (item.barcode || "") : "";
     eigenanbauCheckbox.checked = item ? !!item.eigenanbau : false;
     document.getElementById("f-erntedatum").value = item ? (item.erntedatum || "") : "";
     erntedatumField.style.display = eigenanbauCheckbox.checked ? "flex" : "none";
+    setFormPhoto(item ? (item.foto || "") : "");
 
     formPanel.classList.add("open");
     document.getElementById("f-name").focus();
@@ -759,6 +942,7 @@
     state.editingId = null;
     itemForm.reset();
     erntedatumField.style.display = "none";
+    setFormPhoto("");
     formPanel.classList.remove("open");
   }
 
@@ -785,14 +969,17 @@
     var einheit = document.getElementById("f-einheit").value.trim();
     var mhd = document.getElementById("f-mhd").value;
     var lagerort = document.getElementById("f-lagerort").value;
+    var barcode = document.getElementById("f-barcode").value.trim();
     var eigenanbau = eigenanbauCheckbox.checked;
     var erntedatum = eigenanbau ? document.getElementById("f-erntedatum").value : "";
+    var foto = formPhotoData;
 
     if(!name || !kategorie || isNaN(menge) || menge < 0 || !einheit || !lagerort){
       alert("Bitte fülle alle Pflichtfelder (*) korrekt aus.");
       return;
     }
 
+    var savedItem;
     if(state.editingId){
       var item = state.items.find(function(it){ return it.id === state.editingId; });
       if(item){
@@ -802,11 +989,14 @@
         item.einheit = einheit;
         item.mhd = mhd;
         item.lagerort = lagerort;
+        item.barcode = barcode;
         item.eigenanbau = eigenanbau;
         item.erntedatum = erntedatum;
+        item.foto = foto;
+        savedItem = item;
       }
     } else {
-      state.items.push({
+      savedItem = {
         id: uid(),
         name: name,
         kategorie: kategorie,
@@ -814,9 +1004,16 @@
         einheit: einheit,
         mhd: mhd,
         lagerort: lagerort,
+        barcode: barcode,
         eigenanbau: eigenanbau,
-        erntedatum: erntedatum
-      });
+        erntedatum: erntedatum,
+        foto: foto
+      };
+      state.items.push(savedItem);
+    }
+
+    if(savedItem && barcode){
+      rememberBarcode(barcode, savedItem);
     }
 
     saveToStorage();
@@ -827,6 +1024,15 @@
   // ---------- List interactions (event delegation) ----------
 
   document.getElementById("list-grid").addEventListener("click", function(e){
+    var photoImg = e.target.closest('[data-action="view-photo"]');
+    if(photoImg){
+      var win = window.open("");
+      if(win){
+        win.document.write('<title>Foto</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="' + photoImg.src + '" style="max-width:100%;max-height:100vh;"></body>');
+      }
+      return;
+    }
+
     var btn = e.target.closest("button[data-action]");
     if(!btn) return;
     var id = btn.getAttribute("data-id");
@@ -935,8 +1141,10 @@
           einheit: it.einheit,
           mhd: it.mhd || "",
           lagerort: it.lagerort,
+          barcode: it.barcode || "",
           eigenanbau: !!it.eigenanbau,
-          erntedatum: it.erntedatum || ""
+          erntedatum: it.erntedatum || "",
+          foto: it.foto || ""
         };
       })
     };
@@ -977,8 +1185,10 @@
             einheit: String(raw.einheit || "Stück"),
             mhd: raw.mhd || raw.einheit_mhd || "",
             lagerort: LAGERORTE.indexOf(raw.lagerort) !== -1 ? raw.lagerort : "Sonstiger Ort",
+            barcode: String(raw.barcode || "").trim(),
             eigenanbau: !!raw.eigenanbau,
-            erntedatum: raw.erntedatum || ""
+            erntedatum: raw.erntedatum || "",
+            foto: raw.foto || ""
           };
         });
 
@@ -1004,6 +1214,250 @@
       }
     };
     reader.readAsText(file, "UTF-8");
+  });
+
+  // ---------- Sprach-Eingabe (Web Speech API) ----------
+
+  var SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var speechSupported = !!SpeechRecognitionImpl;
+
+  var searchMicBtn = document.getElementById("search-mic-btn");
+  var dictateBtn = document.getElementById("dictate-btn");
+  var dictateHint = document.getElementById("dictate-hint");
+
+  if(!speechSupported){
+    searchMicBtn.disabled = true;
+    searchMicBtn.title = "Spracheingabe wird von diesem Browser nicht unterstützt.";
+    dictateBtn.disabled = true;
+    dictateHint.textContent = "Spracheingabe wird von diesem Browser nicht unterstützt (z. B. in Chrome/Edge verfügbar).";
+  }
+
+  function runRecognition(btn, onResult, onError){
+    if(!speechSupported) return;
+    var rec = new SpeechRecognitionImpl();
+    rec.lang = "de-DE";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+
+    var origLabel = btn.textContent;
+    btn.classList.add("listening");
+    btn.textContent = "🎙️ Höre zu…";
+
+    rec.onresult = function(e){
+      onResult(e.results[0][0].transcript);
+    };
+    rec.onerror = function(e){
+      if(onError) onError(e);
+    };
+    rec.onend = function(){
+      btn.classList.remove("listening");
+      btn.textContent = origLabel;
+    };
+    try{
+      rec.start();
+    }catch(e){
+      btn.classList.remove("listening");
+      btn.textContent = origLabel;
+    }
+  }
+
+  if(speechSupported){
+    searchMicBtn.addEventListener("click", function(){
+      runRecognition(searchMicBtn, function(text){
+        document.getElementById("search-input").value = text;
+        filters.search = text;
+        renderList();
+      });
+    });
+
+    dictateBtn.addEventListener("click", function(){
+      runRecognition(dictateBtn, function(text){
+        dictateHint.textContent = "Erkannt: „" + text + "“ — bitte prüfen und ggf. korrigieren.";
+        applyDictation(text);
+      }, function(){
+        dictateHint.textContent = "Spracheingabe fehlgeschlagen. Bitte erneut versuchen.";
+      });
+    });
+  }
+
+  var ZAHLWOERTER = {
+    "null": 0, "ein": 1, "eine": 1, "eins": 1, "einen": 1, "zwei": 2, "drei": 3,
+    "vier": 4, "fünf": 5, "sechs": 6, "sieben": 7, "acht": 8, "neun": 9, "zehn": 10,
+    "elf": 11, "zwölf": 12, "halb": 0.5, "halbe": 0.5, "halbes": 0.5
+  };
+
+  var EINHEIT_WOERTER = {
+    "kilo": "kg", "kilogramm": "kg", "kg": "kg",
+    "gramm": "g", "g": "g",
+    "liter": "l", "l": "l",
+    "milliliter": "ml", "ml": "ml",
+    "stück": "Stück", "stueck": "Stück",
+    "packung": "Packung", "packungen": "Packung",
+    "glas": "Glas", "gläser": "Glas",
+    "dose": "Dose", "dosen": "Dose",
+    "bund": "Bund",
+    "kiste": "Kiste", "kisten": "Kiste"
+  };
+
+  function capitalize(str){
+    return str.split(" ").map(function(w){
+      return w ? w.charAt(0).toUpperCase() + w.slice(1) : w;
+    }).join(" ");
+  }
+
+  function applyDictation(text){
+    var words = text.toLowerCase().replace(/[.,]/g, "").split(/\s+/).filter(Boolean);
+    var menge = null, einheit = null, kategorie = null, lagerort = null;
+    var consumed = [];
+
+    words.forEach(function(w, i){
+      if(menge === null && /^\d+([.,]\d+)?$/.test(w)){
+        menge = parseFloat(w.replace(",", "."));
+        consumed.push(i);
+        return;
+      }
+      if(menge === null && ZAHLWOERTER.hasOwnProperty(w)){
+        menge = ZAHLWOERTER[w];
+        consumed.push(i);
+        return;
+      }
+      if(einheit === null && EINHEIT_WOERTER.hasOwnProperty(w)){
+        einheit = EINHEIT_WOERTER[w];
+        consumed.push(i);
+        return;
+      }
+      LAGERORTE.forEach(function(lo){
+        if(lagerort === null && w === lo.toLowerCase()){
+          lagerort = lo;
+          consumed.push(i);
+        }
+      });
+      KATEGORIEN.forEach(function(kat){
+        if(kategorie === null && w === kat.toLowerCase()){
+          kategorie = kat;
+          consumed.push(i);
+        }
+      });
+    });
+
+    var name = words.filter(function(w, i){ return consumed.indexOf(i) === -1; }).join(" ").trim();
+
+    if(name) document.getElementById("f-name").value = capitalize(name);
+    if(menge !== null) document.getElementById("f-menge").value = menge;
+    if(einheit) document.getElementById("f-einheit").value = einheit;
+    if(kategorie) document.getElementById("f-kategorie").value = kategorie;
+    if(lagerort) document.getElementById("f-lagerort").value = lagerort;
+  }
+
+  // ---------- Barcode-Scan (native BarcodeDetector API, rein lokal) ----------
+
+  var BarcodeDetectorImpl = window.BarcodeDetector;
+  var barcodeSupported = !!(BarcodeDetectorImpl && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+  var scanBarcodeBtn = document.getElementById("scan-barcode-btn");
+  var barcodeUnsupportedNote = document.getElementById("barcode-unsupported-note");
+  var cameraModal = document.getElementById("camera-modal");
+  var cameraVideo = document.getElementById("camera-video");
+  var cameraStatus = document.getElementById("camera-status");
+  var cameraCloseBtn = document.getElementById("camera-close-btn");
+
+  var cameraStream = null;
+  var barcodeDetector = null;
+  var scanRafId = null;
+
+  if(!barcodeSupported){
+    scanBarcodeBtn.disabled = true;
+    barcodeUnsupportedNote.style.display = "block";
+  }
+
+  function stopCamera(){
+    if(scanRafId){ cancelAnimationFrame(scanRafId); scanRafId = null; }
+    if(cameraStream){
+      cameraStream.getTracks().forEach(function(t){ t.stop(); });
+      cameraStream = null;
+    }
+    cameraVideo.srcObject = null;
+    cameraModal.classList.remove("open");
+  }
+
+  function scanFrame(){
+    if(!cameraStream) return;
+    barcodeDetector.detect(cameraVideo).then(function(codes){
+      if(codes.length > 0){
+        onBarcodeDetected(codes[0].rawValue);
+      } else {
+        scanRafId = requestAnimationFrame(scanFrame);
+      }
+    }).catch(function(){
+      scanRafId = requestAnimationFrame(scanFrame);
+    });
+  }
+
+  function onBarcodeDetected(value){
+    document.getElementById("f-barcode").value = value;
+    stopCamera();
+
+    var known = loadBarcodeMap()[value];
+    if(known){
+      document.getElementById("f-name").value = known.name;
+      document.getElementById("f-kategorie").value = known.kategorie;
+      document.getElementById("f-einheit").value = known.einheit;
+      document.getElementById("f-lagerort").value = known.lagerort;
+      showToast("Produkt aus früherem Scan erkannt: " + known.name);
+    } else {
+      showToast("Barcode " + value + " erfasst. Bitte einmalig Produktdaten ergänzen.");
+    }
+  }
+
+  if(barcodeSupported){
+    scanBarcodeBtn.addEventListener("click", function(){
+      barcodeDetector = new BarcodeDetectorImpl();
+      cameraStatus.textContent = "Richte die Kamera auf den Barcode…";
+      cameraModal.classList.add("open");
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream){
+        cameraStream = stream;
+        cameraVideo.srcObject = stream;
+        scanRafId = requestAnimationFrame(scanFrame);
+      }).catch(function(err){
+        cameraStatus.textContent = "Kamera konnte nicht gestartet werden: " + err.message;
+      });
+    });
+
+    cameraCloseBtn.addEventListener("click", stopCamera);
+  }
+
+  // ---------- Foto-Aufnahme ----------
+
+  var capturePhotoBtn = document.getElementById("capture-photo-btn");
+  var photoFileInput = document.getElementById("photo-file-input");
+
+  capturePhotoBtn.addEventListener("click", function(){
+    photoFileInput.click();
+  });
+
+  photoFileInput.addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function(evt){
+      var img = new Image();
+      img.onload = function(){
+        var canvas = document.createElement("canvas");
+        var scale = Math.min(1, PHOTO_MAX_SIZE / Math.max(img.width, img.height));
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        setFormPhoto(canvas.toDataURL("image/jpeg", PHOTO_QUALITY));
+      };
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  });
+
+  removePhotoBtn.addEventListener("click", function(){
+    setFormPhoto("");
   });
 
   // ---------- Init ----------
