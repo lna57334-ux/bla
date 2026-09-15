@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<title>Vorrats-Dashboard</title>
+<style>
+  :root{
+    --bg: #f4f6f2;
+    --panel: #ffffff;
+    --border: #dde3d8;
+    --text: #223022;
+    --muted: #66756a;
+    --primary: #3f7d3a;
+    --primary-dark: #2f5f2c;
+    --primary-contrast: #ffffff;
+    --danger: #b3261e;
+    --danger-bg: #fbe4e2;
+    --danger-border: #eab5b0;
+    --warning: #8a5a00;
+    --warning-bg: #fff2d6;
+    --warning-border: #f0d189;
+    --ok-bg: #eef5ea;
+    --ok-border: #cfe3c6;
+    --accent-grow: #6b9b3f;
+    --accent-grow-bg: #eaf3e0;
+    --shadow: 0 1px 3px rgba(20,30,15,0.08), 0 1px 2px rgba(20,30,15,0.06);
+    --radius: 12px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0; padding:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.4;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .wrap{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 16px 80px;
+  }
+
+  header.app-header{
+    padding: 18px 4px 8px;
+  }
+  header.app-header h1{
+    margin: 0 0 2px;
+    font-size: 1.7rem;
+    display:flex; align-items:center; gap:10px;
+  }
+  header.app-header p.sub{
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  /* --- Stats --- */
+  .stats{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .stat-card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .num{
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .stat-card .label{
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 2px;
+  }
+  .stat-card.warn .num{ color: var(--warning); }
+  .stat-card.danger .num{ color: var(--danger); }
+  .stat-card.grow .num{ color: var(--accent-grow); }
+
+  /* --- Panels / sections --- */
+  section.panel{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  section.panel h2{
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+    display:flex; align-items:center; gap:8px;
+  }
+
+  /* --- Controls / filters --- */
+  .controls-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    align-items:end;
+  }
+  .field{
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .field label{
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight:600;
+  }
+  input, select, button{
+    font-family: inherit;
+    font-size: 1rem;
+  }
+  input[type="text"], input[type="number"], input[type="date"], input[type="search"], select{
+    padding: 10px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+    min-height: 44px;
+    width: 100%;
+  }
+  input:focus, select:focus, button:focus{
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+  }
+  .checkbox-field{
+    display:flex; align-items:center; gap:8px;
+    flex-direction: row;
+  }
+  .checkbox-field input[type="checkbox"]{
+    width: 20px; height: 20px;
+  }
+
+  .toolbar-row{
+    display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; align-items:center;
+  }
+
+  button{
+    cursor:pointer;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    padding: 10px 14px;
+    min-height: 44px;
+  }
+  button.primary{
+    background: var(--primary);
+    border-color: var(--primary-dark);
+    color: var(--primary-contrast);
+    font-weight:600;
+  }
+  button.primary:hover{ background: var(--primary-dark); }
+  button.ghost{
+    background: transparent;
+  }
+  button.danger-btn{
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger);
+  }
+  button.small{
+    min-height: 34px;
+    padding: 4px 10px;
+    font-size: 0.9rem;
+  }
+  button:disabled{
+    opacity:0.5; cursor:not-allowed;
+  }
+
+  /* --- Form panel --- */
+  #form-panel{ display:none; }
+  #form-panel.open{ display:block; }
+  form#item-form{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  form#item-form .full{ grid-column: 1 / -1; }
+  .form-actions{
+    grid-column: 1/-1;
+    display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
+  }
+
+  /* --- List --- */
+  .list-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .item-card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 6px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .item-card.expired{ border-left-color: var(--danger); background: var(--danger-bg); }
+  .item-card.soon{ border-left-color: var(--warning); background: var(--warning-bg); }
+  .item-card.ok{ border-left-color: var(--ok-border); }
+
+  .item-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+  }
+  .item-name{
+    font-weight:700; font-size:1.05rem;
+  }
+  .badges{ display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+  .badge{
+    display:inline-block;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #eef1ea;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    white-space:nowrap;
+  }
+  .badge.grow{
+    background: var(--accent-grow-bg);
+    color: var(--accent-grow);
+    border-color: var(--accent-grow);
+  }
+
+  .qty-row{
+    display:flex; align-items:center; gap:8px;
+  }
+  .qty-row .qty-value{
+    min-width: 64px;
+    text-align:center;
+    font-weight:600;
+    font-size:1.05rem;
+  }
+  .qty-row button{
+    min-width: 40px; min-height:40px; padding:0; font-size:1.2rem; line-height:1;
+  }
+
+  .mhd-line{
+    font-size:0.9rem;
+  }
+  .mhd-line.expired-text{ color: var(--danger); font-weight:600; }
+  .mhd-line.soon-text{ color: var(--warning); font-weight:600; }
+  .mhd-line.none-text{ color: var(--muted); font-style:italic; }
+
+  .item-actions{
+    display:flex; gap:8px; margin-top:4px; flex-wrap:wrap;
+  }
+
+  .empty-state{
+    text-align:center;
+    padding: 40px 16px;
+    color: var(--muted);
+  }
+
+  footer.app-footer{
+    display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
+    margin-top: 20px;
+  }
+  footer.app-footer .hint{
+    width:100%;
+    text-align:center;
+    color: var(--muted);
+    font-size:0.8rem;
+    margin-top:4px;
+  }
+
+  /* --- Toast --- */
+  #toast{
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    background: #222;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    display:none;
+    align-items:center;
+    gap: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    z-index: 50;
+    max-width: 90vw;
+  }
+  #toast.show{ display:flex; }
+  #toast button{
+    background: #3f7d3a;
+    border-color: #3f7d3a;
+    color:#fff;
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+
+  #import-file{ display:none; }
+
+  @media (max-width: 480px){
+    header.app-header h1{ font-size:1.4rem; }
+    .wrap{ padding: 10px 10px 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app-header">
+    <h1>🥫 Vorrats-Dashboard</h1>
+    <p class="sub">Lebensmittelvorrat &amp; eigener Anbau &mdash; läuft komplett offline, Daten bleiben nur auf diesem Gerät.</p>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="panel">
+    <h2>🔍 Suche &amp; Filter</h2>
+    <div class="controls-grid">
+      <div class="field">
+        <label for="search-input">Suche nach Name</label>
+        <input type="search" id="search-input" placeholder="z. B. Kartoffeln">
+      </div>
+      <div class="field">
+        <label for="filter-kategorie">Kategorie</label>
+        <select id="filter-kategorie">
+          <option value="">Alle Kategorien</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="filter-lagerort">Lagerort</label>
+        <select id="filter-lagerort">
+          <option value="">Alle Lagerorte</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="sort-select">Sortieren nach</label>
+        <select id="sort-select">
+          <option value="mhd-asc">Ablaufdatum (bald zuerst)</option>
+          <option value="mhd-desc">Ablaufdatum (spät zuerst)</option>
+          <option value="name-asc">Name (A-Z)</option>
+          <option value="name-desc">Name (Z-A)</option>
+          <option value="menge-desc">Menge (viel zuerst)</option>
+          <option value="menge-asc">Menge (wenig zuerst)</option>
+          <option value="kategorie-asc">Kategorie</option>
+        </select>
+      </div>
+    </div>
+    <div class="toolbar-row">
+      <label class="checkbox-field"><input type="checkbox" id="filter-soon"> Nur bald ablaufend / abgelaufen</label>
+      <label class="checkbox-field"><input type="checkbox" id="filter-grow"> Nur Eigenanbau</label>
+      <button type="button" class="ghost small" id="reset-filters-btn">Filter zurücksetzen</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>📋 Vorräte <span id="result-count" style="color:var(--muted); font-weight:400; font-size:0.9rem;"></span></h2>
+    <div class="toolbar-row" style="margin-top:0; margin-bottom:12px;">
+      <button type="button" class="primary" id="add-item-btn">+ Neuer Eintrag</button>
+    </div>
+
+    <div id="form-panel">
+      <h3 id="form-title" style="margin-top:0;">Neuer Eintrag</h3>
+      <form id="item-form">
+        <div class="field">
+          <label for="f-name">Name *</label>
+          <input type="text" id="f-name" required placeholder="z. B. Karotten">
+        </div>
+        <div class="field">
+          <label for="f-kategorie">Kategorie *</label>
+          <select id="f-kategorie" required></select>
+        </div>
+        <div class="field">
+          <label for="f-menge">Menge *</label>
+          <input type="number" id="f-menge" required min="0" step="0.1" value="1">
+        </div>
+        <div class="field">
+          <label for="f-einheit">Einheit *</label>
+          <input type="text" id="f-einheit" required list="einheit-liste" placeholder="z. B. kg">
+          <datalist id="einheit-liste">
+            <option value="Stück">
+            <option value="kg">
+            <option value="g">
+            <option value="l">
+            <option value="ml">
+            <option value="Packung">
+            <option value="Glas">
+            <option value="Dose">
+            <option value="Bund">
+            <option value="Kiste">
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="f-mhd">Mindesthaltbarkeitsdatum</label>
+          <input type="date" id="f-mhd">
+        </div>
+        <div class="field">
+          <label for="f-lagerort">Lagerort *</label>
+          <select id="f-lagerort" required></select>
+        </div>
+        <div class="field">
+          <label class="checkbox-field" for="f-eigenanbau" style="margin-top:22px;">
+            <input type="checkbox" id="f-eigenanbau"> Eigener Anbau
+          </label>
+        </div>
+        <div class="field" id="erntedatum-field" style="display:none;">
+          <label for="f-erntedatum">Erntedatum</label>
+          <input type="date" id="f-erntedatum">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="ghost" id="cancel-form-btn">Abbrechen</button>
+          <button type="submit" class="primary" id="save-item-btn">Eintrag speichern</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="list-grid" id="list-grid"></div>
+    <div class="empty-state" id="empty-state" style="display:none;">Keine Einträge gefunden.</div>
+  </section>
+
+  <footer class="app-footer">
+    <button type="button" id="export-btn">⬇️ Als JSON exportieren</button>
+    <button type="button" id="import-btn">⬆️ JSON importieren</button>
+    <input type="file" id="import-file" accept="application/json,.json">
+    <div class="hint">Alle Daten liegen ausschließlich lokal in diesem Browser (localStorage). Kein Server, keine Cloud.</div>
+  </footer>
+
+</div>
+
+<div id="toast">
+  <span id="toast-text"></span>
+  <button type="button" id="toast-undo-btn">Rückgängig</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "vorratsdashboard_v1";
+  var SOON_DAYS = 7;
+
+  var KATEGORIEN = ["Gemüse", "Obst", "Getreide", "Konserven", "Tiefkühl", "Gewürze", "Sonstiges"];
+  var LAGERORTE = ["Keller", "Kühlschrank", "Gefrierfach", "Speisekammer", "Sonstiger Ort"];
+
+  var state = {
+    items: [],
+    editingId: null
+  };
+
+  var filters = {
+    search: "",
+    kategorie: "",
+    lagerort: "",
+    onlySoon: false,
+    onlyGrow: false,
+    sort: "mhd-asc"
+  };
+
+  var lastRemoved = null;
+  var toastTimer = null;
+
+  // ---------- Persistence ----------
+
+  function loadFromStorage(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return [];
+      var parsed = JSON.parse(raw);
+      if(Array.isArray(parsed.vorraete)) return parsed.vorraete;
+      return [];
+    }catch(e){
+      console.error("Konnte gespeicherte Daten nicht laden:", e);
+      return [];
+    }
+  }
+
+  function saveToStorage(){
+    try{
+      var payload = { version: 1, vorraete: state.items };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }catch(e){
+      console.error("Konnte Daten nicht speichern:", e);
+      alert("Achtung: Die Daten konnten nicht gespeichert werden (localStorage voll oder blockiert).");
+    }
+  }
+
+  // ---------- Helpers ----------
+
+  function uid(){
+    return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+  }
+
+  function todayISO(){
+    var d = new Date();
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function parseDate(str){
+    if(!str) return null;
+    var parts = str.split("-");
+    if(parts.length !== 3) return null;
+    var d = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function daysUntil(dateStr){
+    var d = parseDate(dateStr);
+    if(!d) return null;
+    var today = todayISO();
+    var diffMs = d.getTime() - today.getTime();
+    return Math.round(diffMs / 86400000);
+  }
+
+  function formatDateDE(str){
+    var d = parseDate(str);
+    if(!d) return "";
+    var dd = String(d.getDate()).padStart(2,"0");
+    var mm = String(d.getMonth()+1).padStart(2,"0");
+    return dd + "." + mm + "." + d.getFullYear();
+  }
+
+  function statusOf(item){
+    var days = daysUntil(item.mhd);
+    if(days === null) return "none";
+    if(days < 0) return "expired";
+    if(days <= SOON_DAYS) return "soon";
+    return "ok";
+  }
+
+  function getStep(einheit){
+    var u = (einheit || "").trim().toLowerCase();
+    if(u === "kg" || u === "l") return 0.5;
+    if(u === "g" || u === "ml") return 25;
+    return 1;
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+
+  // ---------- Populate static selects ----------
+
+  function populateSelect(select, values, includeAllOption){
+    values.forEach(function(v){
+      var opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      select.appendChild(opt);
+    });
+  }
+
+  var filterKategorieSel = document.getElementById("filter-kategorie");
+  var filterLagerortSel = document.getElementById("filter-lagerort");
+  var formKategorieSel = document.getElementById("f-kategorie");
+  var formLagerortSel = document.getElementById("f-lagerort");
+
+  populateSelect(filterKategorieSel, KATEGORIEN);
+  populateSelect(filterLagerortSel, LAGERORTE);
+  populateSelect(formKategorieSel, KATEGORIEN);
+  populateSelect(formLagerortSel, LAGERORTE);
+
+  // ---------- Rendering ----------
+
+  function computeStats(){
+    var total = state.items.length;
+    var soon = 0, expired = 0, grow = 0;
+    state.items.forEach(function(it){
+      var s = statusOf(it);
+      if(s === "soon") soon++;
+      if(s === "expired") expired++;
+      if(it.eigenanbau) grow++;
+    });
+    return { total: total, soon: soon, expired: expired, grow: grow };
+  }
+
+  function renderStats(){
+    var s = computeStats();
+    var el = document.getElementById("stats");
+    el.innerHTML =
+      '<div class="stat-card"><div class="num">' + s.total + '</div><div class="label">Einträge gesamt</div></div>' +
+      '<div class="stat-card warn"><div class="num">' + s.soon + '</div><div class="label">Läuft bald ab (' + SOON_DAYS + ' Tage)</div></div>' +
+      '<div class="stat-card danger"><div class="num">' + s.expired + '</div><div class="label">Bereits abgelaufen</div></div>' +
+      '<div class="stat-card grow"><div class="num">' + s.grow + '</div><div class="label">Aus eigenem Anbau</div></div>';
+  }
+
+  function getFilteredSortedItems(){
+    var list = state.items.slice();
+
+    if(filters.search){
+      var q = filters.search.toLowerCase();
+      list = list.filter(function(it){ return it.name.toLowerCase().indexOf(q) !== -1; });
+    }
+    if(filters.kategorie){
+      list = list.filter(function(it){ return it.kategorie === filters.kategorie; });
+    }
+    if(filters.lagerort){
+      list = list.filter(function(it){ return it.lagerort === filters.lagerort; });
+    }
+    if(filters.onlySoon){
+      list = list.filter(function(it){ var s = statusOf(it); return s === "soon" || s === "expired"; });
+    }
+    if(filters.onlyGrow){
+      list = list.filter(function(it){ return !!it.eigenanbau; });
+    }
+
+    var sortFns = {
+      "mhd-asc": function(a,b){
+        var da = daysUntil(a.mhd), db = daysUntil(b.mhd);
+        if(da === null && db === null) return a.name.localeCompare(b.name);
+        if(da === null) return 1;
+        if(db === null) return -1;
+        return da - db;
+      },
+      "mhd-desc": function(a,b){
+        var da = daysUntil(a.mhd), db = daysUntil(b.mhd);
+        if(da === null && db === null) return a.name.localeCompare(b.name);
+        if(da === null) return 1;
+        if(db === null) return -1;
+        return db - da;
+      },
+      "name-asc": function(a,b){ return a.name.localeCompare(b.name); },
+      "name-desc": function(a,b){ return b.name.localeCompare(a.name); },
+      "menge-desc": function(a,b){ return b.menge - a.menge; },
+      "menge-asc": function(a,b){ return a.menge - b.menge; },
+      "kategorie-asc": function(a,b){
+        return a.kategorie.localeCompare(b.kategorie) || a.name.localeCompare(b.name);
+      }
+    };
+
+    list.sort(sortFns[filters.sort] || sortFns["mhd-asc"]);
+    return list;
+  }
+
+  function renderList(){
+    var grid = document.getElementById("list-grid");
+    var emptyState = document.getElementById("empty-state");
+    var list = getFilteredSortedItems();
+
+    document.getElementById("result-count").textContent =
+      "(" + list.length + " von " + state.items.length + ")";
+
+    if(list.length === 0){
+      grid.innerHTML = "";
+      emptyState.style.display = "block";
+      return;
+    }
+    emptyState.style.display = "none";
+
+    grid.innerHTML = list.map(renderCard).join("");
+  }
+
+  function renderCard(item){
+    var status = statusOf(item);
+    var mhdLineClass = "mhd-line";
+    var mhdText;
+    var days = daysUntil(item.mhd);
+
+    if(days === null){
+      mhdLineClass += " none-text";
+      mhdText = "Kein MHD hinterlegt";
+    } else if(status === "expired"){
+      mhdLineClass += " expired-text";
+      mhdText = "⚠️ Abgelaufen seit " + Math.abs(days) + (Math.abs(days) === 1 ? " Tag" : " Tagen") + " (" + formatDateDE(item.mhd) + ")";
+    } else if(status === "soon"){
+      mhdLineClass += " soon-text";
+      mhdText = days === 0
+        ? "⏳ Läuft heute ab (" + formatDateDE(item.mhd) + ")"
+        : "⏳ Läuft in " + days + (days === 1 ? " Tag ab" : " Tagen ab") + " (" + formatDateDE(item.mhd) + ")";
+    } else {
+      mhdText = "MHD: " + formatDateDE(item.mhd) + " (in " + days + " Tagen)";
+    }
+
+    var cardClass = "item-card " + (status === "expired" ? "expired" : status === "soon" ? "soon" : "ok");
+
+    var growBadge = item.eigenanbau
+      ? '<span class="badge grow">🌱 Eigenanbau' + (item.erntedatum ? " · geerntet " + formatDateDE(item.erntedatum) : "") + '</span>'
+      : "";
+
+    var step = getStep(item.einheit);
+
+    return (
+      '<div class="' + cardClass + '" data-id="' + item.id + '">' +
+        '<div class="item-top">' +
+          '<div>' +
+            '<div class="item-name">' + escapeHtml(item.name) + '</div>' +
+            '<div class="badges">' +
+              '<span class="badge">' + escapeHtml(item.kategorie) + '</span>' +
+              '<span class="badge">📍 ' + escapeHtml(item.lagerort) + '</span>' +
+              growBadge +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="qty-row">' +
+          '<button type="button" class="qty-btn" data-action="dec" data-id="' + item.id + '" data-step="' + step + '" aria-label="Menge verringern">&minus;</button>' +
+          '<span class="qty-value">' + formatMenge(item.menge) + ' ' + escapeHtml(item.einheit) + '</span>' +
+          '<button type="button" class="qty-btn" data-action="inc" data-id="' + item.id + '" data-step="' + step + '" aria-label="Menge erhöhen">&plus;</button>' +
+        '</div>' +
+        '<div class="' + mhdLineClass + '">' + mhdText + '</div>' +
+        '<div class="item-actions">' +
+          '<button type="button" class="small" data-action="edit" data-id="' + item.id + '">✏️ Bearbeiten</button>' +
+          '<button type="button" class="small danger-btn" data-action="consume" data-id="' + item.id + '">✅ Verbraucht</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function formatMenge(n){
+    if(Number.isInteger(n)) return String(n);
+    return (Math.round(n * 100) / 100).toString();
+  }
+
+  function render(){
+    renderStats();
+    renderList();
+  }
+
+  // ---------- Form handling ----------
+
+  var formPanel = document.getElementById("form-panel");
+  var itemForm = document.getElementById("item-form");
+  var formTitle = document.getElementById("form-title");
+  var eigenanbauCheckbox = document.getElementById("f-eigenanbau");
+  var erntedatumField = document.getElementById("erntedatum-field");
+
+  function openForm(item){
+    state.editingId = item ? item.id : null;
+    formTitle.textContent = item ? "Eintrag bearbeiten" : "Neuer Eintrag";
+    document.getElementById("save-item-btn").textContent = item ? "Änderungen speichern" : "Eintrag speichern";
+
+    document.getElementById("f-name").value = item ? item.name : "";
+    document.getElementById("f-kategorie").value = item ? item.kategorie : KATEGORIEN[0];
+    document.getElementById("f-menge").value = item ? item.menge : 1;
+    document.getElementById("f-einheit").value = item ? item.einheit : "";
+    document.getElementById("f-mhd").value = item ? (item.mhd || "") : "";
+    document.getElementById("f-lagerort").value = item ? item.lagerort : LAGERORTE[0];
+    eigenanbauCheckbox.checked = item ? !!item.eigenanbau : false;
+    document.getElementById("f-erntedatum").value = item ? (item.erntedatum || "") : "";
+    erntedatumField.style.display = eigenanbauCheckbox.checked ? "flex" : "none";
+
+    formPanel.classList.add("open");
+    document.getElementById("f-name").focus();
+    formPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function closeForm(){
+    state.editingId = null;
+    itemForm.reset();
+    erntedatumField.style.display = "none";
+    formPanel.classList.remove("open");
+  }
+
+  document.getElementById("add-item-btn").addEventListener("click", function(){
+    if(formPanel.classList.contains("open") && !state.editingId){
+      closeForm();
+    } else {
+      openForm(null);
+    }
+  });
+
+  document.getElementById("cancel-form-btn").addEventListener("click", closeForm);
+
+  eigenanbauCheckbox.addEventListener("change", function(){
+    erntedatumField.style.display = eigenanbauCheckbox.checked ? "flex" : "none";
+  });
+
+  itemForm.addEventListener("submit", function(e){
+    e.preventDefault();
+
+    var name = document.getElementById("f-name").value.trim();
+    var kategorie = document.getElementById("f-kategorie").value;
+    var menge = parseFloat(document.getElementById("f-menge").value);
+    var einheit = document.getElementById("f-einheit").value.trim();
+    var mhd = document.getElementById("f-mhd").value;
+    var lagerort = document.getElementById("f-lagerort").value;
+    var eigenanbau = eigenanbauCheckbox.checked;
+    var erntedatum = eigenanbau ? document.getElementById("f-erntedatum").value : "";
+
+    if(!name || !kategorie || isNaN(menge) || menge < 0 || !einheit || !lagerort){
+      alert("Bitte fülle alle Pflichtfelder (*) korrekt aus.");
+      return;
+    }
+
+    if(state.editingId){
+      var item = state.items.find(function(it){ return it.id === state.editingId; });
+      if(item){
+        item.name = name;
+        item.kategorie = kategorie;
+        item.menge = menge;
+        item.einheit = einheit;
+        item.mhd = mhd;
+        item.lagerort = lagerort;
+        item.eigenanbau = eigenanbau;
+        item.erntedatum = erntedatum;
+      }
+    } else {
+      state.items.push({
+        id: uid(),
+        name: name,
+        kategorie: kategorie,
+        menge: menge,
+        einheit: einheit,
+        mhd: mhd,
+        lagerort: lagerort,
+        eigenanbau: eigenanbau,
+        erntedatum: erntedatum
+      });
+    }
+
+    saveToStorage();
+    closeForm();
+    render();
+  });
+
+  // ---------- List interactions (event delegation) ----------
+
+  document.getElementById("list-grid").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-action]");
+    if(!btn) return;
+    var id = btn.getAttribute("data-id");
+    var action = btn.getAttribute("data-action");
+    var item = state.items.find(function(it){ return it.id === id; });
+    if(!item) return;
+
+    if(action === "inc" || action === "dec"){
+      var step = parseFloat(btn.getAttribute("data-step")) || 1;
+      var delta = action === "inc" ? step : -step;
+      item.menge = Math.max(0, Math.round((item.menge + delta) * 100) / 100);
+      saveToStorage();
+      render();
+    } else if(action === "edit"){
+      openForm(item);
+    } else if(action === "consume"){
+      removeItem(id);
+    }
+  });
+
+  function removeItem(id){
+    var idx = state.items.findIndex(function(it){ return it.id === id; });
+    if(idx === -1) return;
+    lastRemoved = { item: state.items[idx], index: idx };
+    state.items.splice(idx, 1);
+    saveToStorage();
+    render();
+    showToast('"' + escapeHtml(lastRemoved.item.name) + '" wurde entfernt.');
+  }
+
+  // ---------- Toast / undo ----------
+
+  var toastEl = document.getElementById("toast");
+  var toastTextEl = document.getElementById("toast-text");
+
+  function showToast(text){
+    toastTextEl.textContent = text;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){
+      toastEl.classList.remove("show");
+      lastRemoved = null;
+    }, 6000);
+  }
+
+  document.getElementById("toast-undo-btn").addEventListener("click", function(){
+    if(lastRemoved){
+      var pos = Math.min(lastRemoved.index, state.items.length);
+      state.items.splice(pos, 0, lastRemoved.item);
+      saveToStorage();
+      render();
+      lastRemoved = null;
+    }
+    toastEl.classList.remove("show");
+    clearTimeout(toastTimer);
+  });
+
+  // ---------- Filters ----------
+
+  document.getElementById("search-input").addEventListener("input", function(e){
+    filters.search = e.target.value;
+    renderList();
+  });
+  filterKategorieSel.addEventListener("change", function(e){
+    filters.kategorie = e.target.value;
+    renderList();
+  });
+  filterLagerortSel.addEventListener("change", function(e){
+    filters.lagerort = e.target.value;
+    renderList();
+  });
+  document.getElementById("sort-select").addEventListener("change", function(e){
+    filters.sort = e.target.value;
+    renderList();
+  });
+  document.getElementById("filter-soon").addEventListener("change", function(e){
+    filters.onlySoon = e.target.checked;
+    renderList();
+  });
+  document.getElementById("filter-grow").addEventListener("change", function(e){
+    filters.onlyGrow = e.target.checked;
+    renderList();
+  });
+  document.getElementById("reset-filters-btn").addEventListener("click", function(){
+    filters = { search: "", kategorie: "", lagerort: "", onlySoon: false, onlyGrow: false, sort: "mhd-asc" };
+    document.getElementById("search-input").value = "";
+    filterKategorieSel.value = "";
+    filterLagerortSel.value = "";
+    document.getElementById("sort-select").value = "mhd-asc";
+    document.getElementById("filter-soon").checked = false;
+    document.getElementById("filter-grow").checked = false;
+    renderList();
+  });
+
+  // ---------- Export / Import ----------
+
+  document.getElementById("export-btn").addEventListener("click", function(){
+    var payload = {
+      version: 1,
+      exportiert_am: new Date().toISOString(),
+      vorraete: state.items.map(function(it){
+        return {
+          name: it.name,
+          kategorie: it.kategorie,
+          menge: it.menge,
+          einheit: it.einheit,
+          mhd: it.mhd || "",
+          lagerort: it.lagerort,
+          eigenanbau: !!it.eigenanbau,
+          erntedatum: it.erntedatum || ""
+        };
+      })
+    };
+    var json = JSON.stringify(payload, null, 2);
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = "vorraete-" + stamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("import-btn").addEventListener("click", function(){
+    document.getElementById("import-file").click();
+  });
+
+  document.getElementById("import-file").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function(evt){
+      try{
+        var data = JSON.parse(evt.target.result);
+        var list = Array.isArray(data) ? data : data.vorraete;
+        if(!Array.isArray(list)) throw new Error("Kein 'vorraete'-Feld gefunden.");
+
+        var imported = list.map(function(raw){
+          return {
+            id: uid(),
+            name: String(raw.name || "").trim() || "Unbenannt",
+            kategorie: KATEGORIEN.indexOf(raw.kategorie) !== -1 ? raw.kategorie : "Sonstiges",
+            menge: typeof raw.menge === "number" ? raw.menge : (parseFloat(raw.menge) || 0),
+            einheit: String(raw.einheit || "Stück"),
+            mhd: raw.mhd || raw.einheit_mhd || "",
+            lagerort: LAGERORTE.indexOf(raw.lagerort) !== -1 ? raw.lagerort : "Sonstiger Ort",
+            eigenanbau: !!raw.eigenanbau,
+            erntedatum: raw.erntedatum || ""
+          };
+        });
+
+        var replace = confirm(
+          imported.length + " Einträge gefunden.\n\n" +
+          "OK = aktuelle Liste ersetzen\n" +
+          "Abbrechen = zur bestehenden Liste hinzufügen"
+        );
+
+        if(replace){
+          state.items = imported;
+        } else {
+          state.items = state.items.concat(imported);
+        }
+
+        saveToStorage();
+        render();
+        showToast(imported.length + " Einträge importiert.");
+      }catch(err){
+        alert("Import fehlgeschlagen: Die Datei enthält kein gültiges Vorrats-JSON.\n\n" + err.message);
+      } finally {
+        e.target.value = "";
+      }
+    };
+    reader.readAsText(file, "UTF-8");
+  });
+
+  // ---------- Init ----------
+
+  state.items = loadFromStorage();
+  render();
+
+})();
+</script>
+</body>
+</html>
