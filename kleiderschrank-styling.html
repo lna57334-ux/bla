@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digitale Boutique – Kleiderschrank &amp; Styling</title>
+<style>
+  :root{
+    --bg:#fdf7f2;
+    --surface:#ffffff;
+    --surface-alt:#fbeee6;
+    --primary:#7c4a6e;
+    --primary-dark:#5a3350;
+    --accent:#c9a15a;
+    --accent-light:#f3e2b8;
+    --text:#3a2c35;
+    --text-muted:#8a7683;
+    --border:#ecdcd0;
+    --success:#5c8a5c;
+    --success-bg:#e9f2e6;
+    --danger:#b3544a;
+    --danger-bg:#f7e6e3;
+    --radius:16px;
+    --radius-sm:10px;
+    --shadow:0 6px 20px rgba(90,51,80,.10);
+    --shadow-sm:0 2px 8px rgba(90,51,80,.08);
+    font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    padding-bottom:24px;
+  }
+  h1,h2,h3{font-family:Georgia,"Iowan Old Style","Times New Roman",serif;margin:0 0 .4em;color:var(--primary-dark);}
+  p{margin:.3em 0;}
+  a{color:var(--primary);}
+  button, select, input, textarea{font-family:inherit;font-size:1rem;}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+
+  header.topbar{
+    background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+    color:#fff;
+    padding:14px 16px 0;
+    position:sticky;top:0;z-index:50;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+  }
+  .brand{
+    display:flex;align-items:center;gap:10px;
+    font-family:Georgia,serif;font-size:1.35rem;font-weight:700;
+    padding-bottom:12px;letter-spacing:.02em;
+  }
+  .brand .logo{font-size:1.6rem;}
+  .brand small{display:block;font-family:inherit;font-size:.65rem;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-light);}
+  nav.tabs{
+    display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:0;
+  }
+  nav.tabs::-webkit-scrollbar{display:none;}
+  nav.tabs button{
+    flex:0 0 auto;
+    background:rgba(255,255,255,.08);
+    border:none;color:#f3e6ee;
+    padding:10px 14px;border-radius:10px 10px 0 0;
+    cursor:pointer;font-size:.88rem;white-space:nowrap;
+    display:flex;align-items:center;gap:6px;
+    transition:background .15s;
+  }
+  nav.tabs button:hover{background:rgba(255,255,255,.16);}
+  nav.tabs button.active{background:var(--bg);color:var(--primary-dark);font-weight:700;}
+
+  main{max-width:1080px;margin:0 auto;padding:18px 14px 60px;}
+  .tab-panel{display:none;animation:fade .2s ease;}
+  .tab-panel.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-sm);
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .section-title{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .section-title .emoji{font-size:1.3rem;}
+
+  /* Filters */
+  .filters{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:10px;margin-bottom:14px;
+  }
+  .filters label{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:3px;}
+  select, input[type=text], input[type=number], input[type=search], textarea{
+    width:100%;padding:9px 10px;border-radius:var(--radius-sm);
+    border:1px solid var(--border);background:#fff;color:var(--text);
+  }
+  select:focus, input:focus, textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;justify-content:center;
+    background:var(--primary);color:#fff;border:none;
+    padding:10px 16px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.9rem;
+    transition:transform .1s, background .15s;
+  }
+  .btn:hover{background:var(--primary-dark);}
+  .btn:active{transform:scale(.97);}
+  .btn.secondary{background:var(--surface-alt);color:var(--primary-dark);}
+  .btn.secondary:hover{background:var(--accent-light);}
+  .btn.gold{background:var(--accent);color:#3a2c35;}
+  .btn.gold:hover{background:#b78d43;}
+  .btn.danger{background:var(--danger-bg);color:var(--danger);}
+  .btn.danger:hover{background:#eecac3;}
+  .btn.small{padding:6px 11px;font-size:.78rem;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* Gallery */
+  .gallery-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;
+  }
+  .item-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:14px;box-shadow:var(--shadow-sm);position:relative;display:flex;flex-direction:column;gap:8px;
+  }
+  .item-card .fav{position:absolute;top:10px;right:10px;background:none;border:none;font-size:1.2rem;cursor:pointer;line-height:1;}
+  .item-card h3{font-size:1.05rem;margin:0;padding-right:24px;}
+  .item-kat{font-size:.78rem;color:var(--text-muted);}
+  .swatches{display:flex;gap:5px;flex-wrap:wrap;}
+  .swatch{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.15);display:inline-block;}
+  .badges{display:flex;flex-wrap:wrap;gap:5px;}
+  .badge{
+    background:var(--surface-alt);color:var(--primary-dark);
+    font-size:.68rem;padding:3px 8px;border-radius:999px;border:1px solid var(--border);
+  }
+  .badge.wetter{background:#eaf1fb;color:#3a5a85;}
+  .badge.saison{background:#f1ede0;color:#6b6237;}
+  .item-card .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px;}
+  .item-card .actions{display:flex;gap:6px;}
+  .empty-state{text-align:center;padding:36px 16px;color:var(--text-muted);}
+  .empty-state .emoji{font-size:2.4rem;display:block;margin-bottom:8px;}
+
+  /* Form */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-grid .full{grid-column:1/-1;}
+  @media (max-width:640px){.form-grid{grid-template-columns:1fr;}}
+  fieldset{border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin:0;}
+  legend{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:0 4px;}
+  .check-grid{display:flex;flex-wrap:wrap;gap:8px;}
+  .check-pill{
+    display:flex;align-items:center;gap:5px;background:var(--surface-alt);
+    padding:6px 10px;border-radius:999px;font-size:.82rem;cursor:pointer;border:1px solid transparent;
+  }
+  .check-pill input{margin:0;}
+  .check-pill.color-pill{gap:6px;}
+  .color-dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.2);display:inline-block;}
+  label.field-label{display:block;font-weight:600;font-size:.85rem;margin-bottom:5px;color:var(--primary-dark);}
+
+  /* Weather panel */
+  .weather-panel{background:linear-gradient(135deg,var(--surface-alt),#fff);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
+  .weather-status{display:flex;align-items:center;gap:10px;font-size:.95rem;margin-bottom:10px;flex-wrap:wrap;}
+  .weather-status .big-emoji{font-size:1.8rem;}
+  .weather-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;}
+  .radio-pill{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--border);padding:6px 12px;border-radius:999px;font-size:.82rem;cursor:pointer;}
+  .radio-pill input{margin:0;}
+  .radio-pill.checked{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .loc-search{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .loc-search input{flex:1;min-width:160px;}
+  .status-text{font-size:.8rem;color:var(--text-muted);}
+
+  /* Outfit cards */
+  .outfit-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+  .outfit-pieces{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0;}
+  .piece{background:var(--surface-alt);border-radius:var(--radius-sm);padding:10px;text-align:center;}
+  .piece .icon{font-size:1.6rem;}
+  .piece .name{font-weight:600;font-size:.85rem;margin-top:4px;}
+  .piece .kat{font-size:.7rem;color:var(--text-muted);}
+  .outfit-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .warn-badge{background:var(--danger-bg);color:var(--danger);font-size:.75rem;padding:4px 10px;border-radius:999px;display:inline-block;margin-top:8px;}
+
+  /* Tips */
+  .tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+  .tip-card{background:var(--surface);border-left:4px solid var(--accent);border-radius:var(--radius-sm);padding:14px;box-shadow:var(--shadow-sm);}
+  .tip-card h3{font-size:.98rem;margin-bottom:6px;}
+  .tip-card ul{margin:0;padding-left:18px;font-size:.86rem;color:var(--text);}
+  .tip-card ul li{margin-bottom:4px;}
+
+  /* Shopping list */
+  .gap-list{list-style:none;padding:0;margin:0 0 6px;}
+  .gap-list li{padding:8px 10px;background:var(--danger-bg);color:#7a3a30;border-radius:var(--radius-sm);margin-bottom:6px;font-size:.87rem;}
+  .shopping-list{list-style:none;padding:0;margin:0;}
+  .shopping-list li{
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid var(--border);
+  }
+  .shopping-list li.done .txt{text-decoration:line-through;color:var(--text-muted);}
+  .shopping-list li .txt{flex:1;font-size:.92rem;}
+  .shopping-list li .tag-auto{font-size:.65rem;background:var(--accent-light);color:#6b5220;padding:2px 7px;border-radius:999px;}
+  .add-row{display:flex;gap:8px;margin-top:12px;}
+  .add-row input{flex:1;}
+
+  footer.small-note{text-align:center;color:var(--text-muted);font-size:.75rem;margin-top:30px;}
+
+  .toast{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--primary-dark);color:#fff;padding:10px 20px;border-radius:999px;
+    font-size:.85rem;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .25s;z-index:100;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:640px){
+    .brand{font-size:1.15rem;}
+    nav.tabs button{padding:9px 10px;font-size:.8rem;}
+    main{padding:14px 10px 60px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="logo">👗</span><div>Digitale Boutique<small>Kleiderschrank &amp; Styling</small></div></div>
+  <nav class="tabs" id="tabNav">
+    <button data-tab="galerie" class="active">🗂️ Übersicht</button>
+    <button data-tab="neu">➕ Neues Teil</button>
+    <button data-tab="outfit">✨ Outfit</button>
+    <button data-tab="tipps">💡 Styling-Tipps</button>
+    <button data-tab="liste">🛍️ Einkaufsliste</button>
+    <button data-tab="daten">💾 Daten</button>
+  </nav>
+</header>
+
+<main id="app">
+
+  <!-- ÜBERSICHT / GALERIE -->
+  <section id="tab-galerie" class="tab-panel active">
+    <div class="card">
+      <div class="section-title"><span class="emoji">🗂️</span><h2>Meine Garderobe</h2></div>
+      <div class="filters">
+        <div>
+          <label for="f-kategorie">Kategorie</label>
+          <select id="f-kategorie"><option value="">Alle</option></select>
+        </div>
+        <div>
+          <label for="f-standort">Standort</label>
+          <select id="f-standort"><option value="">Alle</option></select>
+        </div>
+        <div>
+          <label for="f-farbe">Farbe</label>
+          <select id="f-farbe"><option value="">Alle</option></select>
+        </div>
+        <div>
+          <label for="f-saison">Saison</label>
+          <select id="f-saison"><option value="">Alle</option></select>
+        </div>
+        <div>
+          <label for="f-sort">Sortieren nach</label>
+          <select id="f-sort">
+            <option value="name">Name (A–Z)</option>
+            <option value="kategorie">Kategorie</option>
+            <option value="standort">Standort</option>
+            <option value="farbe">Farbe</option>
+            <option value="saison">Saison</option>
+            <option value="favorit">Lieblingsstück zuerst</option>
+            <option value="neu">Zuletzt hinzugefügt</option>
+          </select>
+        </div>
+      </div>
+      <p class="status-text" id="galerie-count"></p>
+    </div>
+    <div id="gallery-container" class="gallery-grid"></div>
+  </section>
+
+  <!-- NEUES TEIL / BEARBEITEN -->
+  <section id="tab-neu" class="tab-panel">
+    <div class="card">
+      <div class="section-title"><span class="emoji">➕</span><h2 id="form-title">Neues Kleidungsstück</h2></div>
+      <form id="item-form">
+        <div class="form-grid">
+          <div>
+            <label class="field-label" for="i-name">Name *</label>
+            <input type="text" id="i-name" required placeholder="z. B. Blaue Jeans, Wollmantel …">
+          </div>
+          <div>
+            <label class="field-label" for="i-kategorie">Kategorie *</label>
+            <select id="i-kategorie" required></select>
+          </div>
+          <div class="full">
+            <fieldset>
+              <legend>Farbe(n)</legend>
+              <div class="check-grid" id="i-farben"></div>
+            </fieldset>
+          </div>
+          <div class="full">
+            <fieldset>
+              <legend>Stil-Tags</legend>
+              <div class="check-grid" id="i-stiltags"></div>
+            </fieldset>
+          </div>
+          <div class="full">
+            <fieldset>
+              <legend>Saison-Eignung</legend>
+              <div class="check-grid" id="i-saison"></div>
+            </fieldset>
+          </div>
+          <div class="full">
+            <fieldset>
+              <legend>Wetter-Eignung</legend>
+              <div class="check-grid" id="i-wetter"></div>
+            </fieldset>
+          </div>
+          <div>
+            <label class="field-label" for="i-standort">Standort</label>
+            <select id="i-standort"></select>
+          </div>
+          <div>
+            <label class="field-label">&nbsp;</label>
+            <label class="check-pill" style="width:fit-content;">
+              <input type="checkbox" id="i-lieblingsstueck"> ⭐ Lieblingsstück
+            </label>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="submit" class="btn gold">💾 Speichern</button>
+          <button type="button" class="btn secondary" id="btn-cancel-edit" style="display:none;">Abbrechen</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- OUTFIT-VORSCHLÄGE -->
+  <section id="tab-outfit" class="tab-panel">
+    <div class="card">
+      <div class="section-title"><span class="emoji">🌤️</span><h2>Wetter</h2></div>
+      <div class="weather-panel">
+        <div class="weather-status" id="weather-status">
+          <span class="big-emoji">❔</span>
+          <span id="weather-status-text">Noch kein Wetter ermittelt.</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn secondary small" id="btn-auto-weather">📍 Automatisch erkennen</button>
+        </div>
+        <div class="loc-search">
+          <input type="text" id="loc-input" placeholder="Ort manuell eingeben (z. B. Berlin)">
+          <button class="btn secondary small" id="btn-loc-search">🔎 Ort suchen</button>
+        </div>
+        <p class="status-text" style="margin-top:10px;">Oder Wetter manuell wählen:</p>
+        <div class="weather-row" id="manual-temp-row"></div>
+        <label class="check-pill" style="margin-top:8px;width:fit-content;">
+          <input type="checkbox" id="manual-regenfest"> 🌧️ Regen / Niederschlag
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title"><span class="emoji">✨</span><h2>Outfit-Vorschlag</h2></div>
+      <div class="filters" style="align-items:end;">
+        <div>
+          <label for="o-anlass">Anlass</label>
+          <select id="o-anlass"></select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+        <button class="btn gold" id="btn-outfit-vorschlag">✨ Outfit vorschlagen</button>
+        <button class="btn secondary" id="btn-outfit-neu" style="display:none;">🔀 Weitere Vorschläge</button>
+      </div>
+    </div>
+
+    <div id="outfit-results"></div>
+  </section>
+
+  <!-- STYLING-TIPPS -->
+  <section id="tab-tipps" class="tab-panel">
+    <div class="card">
+      <div class="section-title"><span class="emoji">💡</span><h2>Styling-Tipps von der Boutique</h2></div>
+      <p class="status-text">Grundregeln, wie sie professionelle Stylist:innen anwenden.</p>
+    </div>
+    <div class="tips-grid" id="tips-container"></div>
+  </section>
+
+  <!-- EINKAUFSLISTE / LÜCKEN -->
+  <section id="tab-liste" class="tab-panel">
+    <div class="card">
+      <div class="section-title"><span class="emoji">🔍</span><h2>Erkannte Lücken in der Garderobe</h2></div>
+      <ul class="gap-list" id="gap-list"></ul>
+      <p class="status-text" id="gap-empty" style="display:none;">Keine offensichtlichen Lücken erkannt – deine Kapselgarderobe ist gut aufgestellt! 🎉</p>
+    </div>
+    <div class="card">
+      <div class="section-title"><span class="emoji">🛍️</span><h2>Einkaufsliste</h2></div>
+      <ul class="shopping-list" id="shopping-list"></ul>
+      <div class="add-row">
+        <input type="text" id="shopping-input" placeholder="Eigenen Eintrag hinzufügen …">
+        <button class="btn gold small" id="btn-add-shopping">Hinzufügen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATEN / EXPORT-IMPORT -->
+  <section id="tab-daten" class="tab-panel">
+    <div class="card">
+      <div class="section-title"><span class="emoji">💾</span><h2>Daten-Verwaltung</h2></div>
+      <p class="status-text">Alle Daten werden ausschließlich lokal in diesem Browser gespeichert (localStorage). Es gibt keine Cloud-Synchronisierung.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+        <button class="btn gold" id="btn-export">⬇️ Als JSON exportieren</button>
+        <label class="btn secondary" style="cursor:pointer;">
+          ⬆️ JSON importieren
+          <input type="file" id="import-file" accept="application/json,.json" class="visually-hidden">
+        </label>
+        <button class="btn danger" id="btn-reset">🗑️ Alle Daten löschen</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title"><span class="emoji">ℹ️</span><h2>Struktur des JSON-Exports</h2></div>
+      <pre style="white-space:pre-wrap;font-size:.78rem;background:var(--surface-alt);padding:10px;border-radius:var(--radius-sm);">{
+  "kleiderschrank": [
+    {
+      "id": "…",
+      "name": "…",
+      "kategorie": "Oberteil",
+      "farben": ["Blau"],
+      "stil_tags": ["Casual"],
+      "saison": ["Sommer"],
+      "wetter_eignung": ["warm"],
+      "standort": "Schrank",
+      "lieblingsstueck": false
+    }
+  ],
+  "einkaufsliste": [
+    { "id": "…", "text": "Regenfeste Jacke", "done": false, "source": "auto" }
+  ]
+}</pre>
+    </div>
+  </section>
+
+</main>
+
+<footer class="small-note">Digitale Boutique · läuft lokal in deinem Browser · Wetterdaten via Open-Meteo</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ---------- Konstanten ---------- */
+const KATEGORIEN = ["Oberteil","Hose","Rock","Kleid","Jacke","Schuhe","Accessoire","Sonstiges"];
+const KAT_ICON = {Oberteil:"👕",Hose:"👖",Rock:"🩱",Kleid:"👗",Jacke:"🧥",Schuhe:"👟",Accessoire:"👜",Sonstiges:"🗂️"};
+const STIL_TAGS = ["Business","Casual","Sportlich","Festlich"];
+const SAISONS = ["Frühling","Sommer","Herbst","Winter"];
+const WETTER = ["warm","mild","kalt","regenfest"];
+const WETTER_LABEL = {warm:"☀️ Warm",mild:"⛅ Mild",kalt:"❄️ Kalt",regenfest:"🌧️ Regenfest"};
+const STANDORTE = ["Schrank","Wäschekorb","In der Wäsche/Waschmaschine","Reinigung","Verliehen","Sonstiges"];
+const FARBEN = ["Schwarz","Weiß","Grau","Beige","Braun","Creme","Marineblau","Blau","Hellblau","Türkis","Rot","Rosa/Pink","Orange","Gelb","Grün","Oliv","Lila","Gold","Silber","Bunt/Gemustert"];
+const NEUTRALE_FARBEN = ["Schwarz","Weiß","Grau","Beige","Braun","Creme","Marineblau","Gold","Silber"];
+const FARB_HEX = {
+  Schwarz:"#222",Weiß:"#fff",Grau:"#9a9a9a",Beige:"#e3d3b8",Braun:"#7a5233",Creme:"#f4ecd8",
+  Marineblau:"#1f2d54",Blau:"#3462c8",Hellblau:"#9ecdf0",Türkis:"#2fb0ab",Rot:"#c23b3b",
+  "Rosa/Pink":"#e2789a",Orange:"#e08a34",Gelb:"#e6c93a",Grün:"#4d8f57",Oliv:"#7c7a3d",
+  Lila:"#8a5bab",Gold:"#c9a15a",Silber:"#c7c9cc","Bunt/Gemustert":"conic-gradient(from 0deg,#e2789a,#e6c93a,#4d8f57,#3462c8,#8a5bab,#e2789a)"
+};
+const CLASSIC_PAIRS = [["Blau","Weiß"],["Rot","Schwarz"],["Rot","Weiß"],["Grün","Beige"],["Rosa/Pink","Grau"],["Gelb","Marineblau"],["Orange","Blau"],["Lila","Gelb"],["Türkis","Orange"]];
+const ANLAESSE = ["Business","Freizeit","Sport","Festlich","Date"];
+const ANLASS_TO_STIL = {Business:["Business"],Freizeit:["Casual"],Sport:["Sportlich"],Festlich:["Festlich"],Date:["Casual","Festlich"]};
+
+const LS_ITEMS = "ks_items_v1";
+const LS_SHOPPING = "ks_shopping_v1";
+
+/* ---------- State ---------- */
+let items = loadJSON(LS_ITEMS, []);
+let shoppingList = loadJSON(LS_SHOPPING, []);
+let editingId = null;
+let currentWeather = { tempCategory:"mild", regenfest:false, source:"manuell (Standard)", label:"", tempC:null };
+let lastOutfitContext = null;
+
+/* ---------- Utilities ---------- */
+function uid(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "id-"+Date.now()+"-"+Math.random().toString(16).slice(2);
+}
+function loadJSON(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : fallback;
+  }catch(e){ return fallback; }
+}
+function saveItems(){ localStorage.setItem(LS_ITEMS, JSON.stringify(items)); }
+function saveShopping(){ localStorage.setItem(LS_SHOPPING, JSON.stringify(shoppingList)); }
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove("show"), 2200);
+}
+function el(tag, attrs, ...children){
+  const e = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v])=>{
+    if (k === "class") e.className = v;
+    else if (k === "html") e.innerHTML = v;
+    else if (k.startsWith("on") && typeof v === "function") e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  });
+  children.flat().forEach(c=>{
+    if (c === null || c === undefined) return;
+    e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  });
+  return e;
+}
+function swatchNode(farbe){
+  const bg = FARB_HEX[farbe] || "#ccc";
+  return el("span",{class:"swatch",title:farbe,style:`background:${bg}`});
+}
+
+/* ---------- Tabs ---------- */
+document.getElementById("tabNav").addEventListener("click", (e)=>{
+  const btn = e.target.closest("button[data-tab]");
+  if (!btn) return;
+  switchTab(btn.dataset.tab);
+});
+function switchTab(name){
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.toggle("active", p.id === "tab-"+name));
+  if (name === "liste") renderGapsAndShopping();
+  if (name === "galerie") renderGallery();
+}
+
+/* ================= GALERIE ================= */
+function fillSelect(sel, values, withEmpty){
+  sel.innerHTML = "";
+  if (withEmpty) sel.appendChild(el("option",{value:""}, withEmpty));
+  values.forEach(v=> sel.appendChild(el("option",{value:v}, v)));
+}
+function initFilterSelects(){
+  fillSelect(document.getElementById("f-kategorie"), KATEGORIEN, "Alle");
+  fillSelect(document.getElementById("f-standort"), STANDORTE, "Alle");
+  fillSelect(document.getElementById("f-farbe"), FARBEN, "Alle");
+  fillSelect(document.getElementById("f-saison"), SAISONS, "Alle");
+  ["f-kategorie","f-standort","f-farbe","f-saison","f-sort"].forEach(id=>{
+    document.getElementById(id).addEventListener("change", renderGallery);
+  });
+}
+function renderGallery(){
+  const kat = document.getElementById("f-kategorie").value;
+  const standort = document.getElementById("f-standort").value;
+  const farbe = document.getElementById("f-farbe").value;
+  const saison = document.getElementById("f-saison").value;
+  const sort = document.getElementById("f-sort").value;
+
+  let list = items.filter(i=>{
+    if (kat && i.kategorie !== kat) return false;
+    if (standort && i.standort !== standort) return false;
+    if (farbe && !(i.farben||[]).includes(farbe)) return false;
+    if (saison && !(i.saison||[]).includes(saison)) return false;
+    return true;
+  });
+
+  const sorters = {
+    name: (a,b)=>a.name.localeCompare(b.name,"de"),
+    kategorie: (a,b)=>a.kategorie.localeCompare(b.kategorie,"de") || a.name.localeCompare(b.name,"de"),
+    standort: (a,b)=>a.standort.localeCompare(b.standort,"de") || a.name.localeCompare(b.name,"de"),
+    farbe: (a,b)=>(a.farben[0]||"").localeCompare(b.farben[0]||"","de"),
+    saison: (a,b)=>(a.saison[0]||"").localeCompare(b.saison[0]||"","de"),
+    favorit: (a,b)=>(b.lieblingsstueck?1:0)-(a.lieblingsstueck?1:0) || a.name.localeCompare(b.name,"de"),
+    neu: (a,b)=>0
+  };
+  if (sort === "neu") list = list.slice().reverse();
+  else list = list.slice().sort(sorters[sort] || sorters.name);
+
+  const container = document.getElementById("gallery-container");
+  container.innerHTML = "";
+  document.getElementById("galerie-count").textContent = `${list.length} von ${items.length} Kleidungsstück(en) angezeigt`;
+
+  if (!list.length){
+    container.appendChild(el("div",{class:"empty-state"},
+      el("span",{class:"emoji"},"🧺"),
+      el("p",null, items.length ? "Keine Kleidungsstücke entsprechen den Filtern." : "Noch keine Kleidungsstücke angelegt. Füge dein erstes Teil unter „Neues Teil“ hinzu.")
+    ));
+    return;
+  }
+
+  list.forEach(item=>{
+    const standortSel = el("select",{class:"standort-quick", "aria-label":"Standort ändern", onchange:(e)=>{
+      item.standort = e.target.value; saveItems(); toast(`Standort geändert: ${item.name} → ${item.standort}`);
+    }});
+    STANDORTE.forEach(s=> standortSel.appendChild(el("option",{value:s, ...(s===item.standort?{selected:"selected"}:{})}, s)));
+
+    const card = el("div",{class:"item-card"},
+      el("button",{class:"fav", title:"Lieblingsstück", onclick:()=>{
+        item.lieblingsstueck = !item.lieblingsstueck; saveItems(); renderGallery();
+      }}, item.lieblingsstueck ? "⭐" : "☆"),
+      el("h3",null, `${KAT_ICON[item.kategorie]||""} ${item.name}`),
+      el("div",{class:"item-kat"}, item.kategorie),
+      el("div",{class:"swatches"}, (item.farben||[]).map(swatchNode)),
+      el("div",{class:"badges"},
+        (item.stil_tags||[]).map(t=>el("span",{class:"badge"},t)),
+        (item.saison||[]).map(s=>el("span",{class:"badge saison"},s)),
+        (item.wetter_eignung||[]).map(w=>el("span",{class:"badge wetter"},WETTER_LABEL[w]||w))
+      ),
+      el("div",{class:"row"}, el("label",{class:"field-label", style:"margin:0;font-weight:500;font-size:.75rem;"}, "Standort:"), standortSel),
+      el("div",{class:"row actions"},
+        el("button",{class:"btn secondary small", onclick:()=>startEdit(item.id)}, "✏️ Bearbeiten"),
+        el("button",{class:"btn danger small", onclick:()=>deleteItem(item.id)}, "🗑️ Löschen")
+      )
+    );
+    container.appendChild(card);
+  });
+}
+function deleteItem(id){
+  const item = items.find(i=>i.id===id);
+  if (!item) return;
+  if (!confirm(`„${item.name}“ wirklich löschen?`)) return;
+  items = items.filter(i=>i.id!==id);
+  saveItems();
+  renderGallery();
+  toast("Kleidungsstück gelöscht.");
+}
+
+/* ================= FORMULAR ================= */
+function checkPill(name, value, groupId){
+  const id = `${groupId}-${value}`.replace(/[^a-zA-Z0-9-]/g,"");
+  const label = el("label",{class:"check-pill", for:id});
+  const input = el("input",{type:"checkbox", id, value, name});
+  label.appendChild(input);
+  label.appendChild(document.createTextNode(value));
+  return label;
+}
+function colorCheckPill(value){
+  const id = `farbe-${value}`.replace(/[^a-zA-Z0-9-]/g,"");
+  const label = el("label",{class:"check-pill color-pill", for:id});
+  const input = el("input",{type:"checkbox", id, value, name:"farbe"});
+  const dot = el("span",{class:"color-dot", style:`background:${FARB_HEX[value]||"#ccc"}`});
+  label.appendChild(input); label.appendChild(dot); label.appendChild(document.createTextNode(value));
+  return label;
+}
+function initForm(){
+  fillSelect(document.getElementById("i-kategorie"), KATEGORIEN);
+  fillSelect(document.getElementById("i-standort"), STANDORTE);
+  const farbenBox = document.getElementById("i-farben");
+  FARBEN.forEach(f=> farbenBox.appendChild(colorCheckPill(f)));
+  const stilBox = document.getElementById("i-stiltags");
+  STIL_TAGS.forEach(t=> stilBox.appendChild(checkPill(t,t,"stil")));
+  const saisonBox = document.getElementById("i-saison");
+  SAISONS.forEach(s=> saisonBox.appendChild(checkPill(s,s,"saison")));
+  const wetterBox = document.getElementById("i-wetter");
+  WETTER.forEach(w=> wetterBox.appendChild(checkPill(WETTER_LABEL[w],w,"wetter")));
+
+  document.getElementById("item-form").addEventListener("submit", onSubmitForm);
+  document.getElementById("btn-cancel-edit").addEventListener("click", resetForm);
+}
+function getCheckedValues(containerId){
+  return Array.from(document.querySelectorAll(`#${containerId} input:checked`)).map(i=>i.value);
+}
+function onSubmitForm(e){
+  e.preventDefault();
+  const name = document.getElementById("i-name").value.trim();
+  const kategorie = document.getElementById("i-kategorie").value;
+  if (!name || !kategorie){ toast("Bitte Name und Kategorie ausfüllen."); return; }
+
+  const data = {
+    name,
+    kategorie,
+    farben: getCheckedValues("i-farben"),
+    stil_tags: getCheckedValues("i-stiltags"),
+    saison: getCheckedValues("i-saison"),
+    wetter_eignung: getCheckedValues("i-wetter"),
+    standort: document.getElementById("i-standort").value,
+    lieblingsstueck: document.getElementById("i-lieblingsstueck").checked
+  };
+
+  if (editingId){
+    const idx = items.findIndex(i=>i.id===editingId);
+    if (idx>-1) items[idx] = {...items[idx], ...data};
+    toast("Änderungen gespeichert.");
+  } else {
+    items.push({id: uid(), ...data});
+    toast("Kleidungsstück hinzugefügt.");
+  }
+  saveItems();
+  resetForm();
+  switchTab("galerie");
+}
+function startEdit(id){
+  const item = items.find(i=>i.id===id);
+  if (!item) return;
+  editingId = id;
+  document.getElementById("form-title").textContent = `„${item.name}“ bearbeiten`;
+  document.getElementById("i-name").value = item.name;
+  document.getElementById("i-kategorie").value = item.kategorie;
+  document.getElementById("i-standort").value = item.standort;
+  document.getElementById("i-lieblingsstueck").checked = !!item.lieblingsstueck;
+  setChecked("i-farben", item.farben);
+  setChecked("i-stiltags", item.stil_tags);
+  setChecked("i-saison", item.saison);
+  setChecked("i-wetter", item.wetter_eignung);
+  document.getElementById("btn-cancel-edit").style.display = "inline-flex";
+  switchTab("neu");
+}
+function setChecked(containerId, values){
+  const set = new Set(values||[]);
+  document.querySelectorAll(`#${containerId} input`).forEach(inp=> inp.checked = set.has(inp.value));
+}
+function resetForm(){
+  editingId = null;
+  document.getElementById("item-form").reset();
+  document.getElementById("form-title").textContent = "Neues Kleidungsstück";
+  document.getElementById("btn-cancel-edit").style.display = "none";
+}
+
+/* ================= WETTER ================= */
+function tempToCategory(tempC){
+  if (tempC >= 18) return "warm";
+  if (tempC >= 8) return "mild";
+  return "kalt";
+}
+function initWeatherUI(){
+  const row = document.getElementById("manual-temp-row");
+  ["warm","mild","kalt"].forEach(cat=>{
+    const id = "manual-temp-"+cat;
+    const label = el("label",{class:"radio-pill", for:id});
+    const input = el("input",{type:"radio", id, name:"manual-temp", value:cat, ...(cat==="mild"?{checked:"checked"}:{})});
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(WETTER_LABEL[cat]));
+    row.appendChild(label);
+  });
+  document.querySelectorAll('input[name="manual-temp"]').forEach(r=>{
+    r.addEventListener("change", ()=>{
+      if (r.checked){
+        currentWeather = {tempCategory:r.value, regenfest:document.getElementById("manual-regenfest").checked, source:"Manuell gewählt", label:"", tempC:null};
+        updateWeatherStatusUI();
+      }
+    });
+  });
+  document.getElementById("manual-regenfest").addEventListener("change", (e)=>{
+    currentWeather.regenfest = e.target.checked;
+    currentWeather.source = "Manuell gewählt";
+    updateWeatherStatusUI();
+  });
+  document.getElementById("btn-auto-weather").addEventListener("click", tryAutoWeather);
+  document.getElementById("btn-loc-search").addEventListener("click", searchLocationWeather);
+  document.getElementById("loc-input").addEventListener("keydown", (e)=>{ if (e.key==="Enter"){ e.preventDefault(); searchLocationWeather(); }});
+  updateWeatherStatusUI();
+}
+function updateWeatherStatusUI(){
+  const emojiMap = {warm:"☀️",mild:"⛅",kalt:"❄️"};
+  const big = document.querySelector("#weather-status .big-emoji");
+  const txt = document.getElementById("weather-status-text");
+  big.textContent = currentWeather.regenfest ? "🌧️" : (emojiMap[currentWeather.tempCategory]||"❔");
+  let details = `${WETTER_LABEL[currentWeather.tempCategory]}${currentWeather.regenfest ? " · 🌧️ Regen" : ""}`;
+  if (currentWeather.tempC !== null && currentWeather.tempC !== undefined) details += ` · ${Math.round(currentWeather.tempC)}°C`;
+  txt.textContent = `${details} — Quelle: ${currentWeather.source}${currentWeather.label ? " ("+currentWeather.label+")" : ""}`;
+
+  document.querySelectorAll('input[name="manual-temp"]').forEach(r=>{
+    r.checked = (r.value === currentWeather.tempCategory);
+    r.closest("label").classList.toggle("checked", r.checked);
+  });
+  document.getElementById("manual-regenfest").checked = !!currentWeather.regenfest;
+}
+async function tryAutoWeather(){
+  if (!("geolocation" in navigator)){
+    toast("Geolocation wird von diesem Browser nicht unterstützt – bitte manuell wählen.");
+    return;
+  }
+  toast("Standort wird ermittelt …");
+  navigator.geolocation.getCurrentPosition(
+    async (pos)=>{
+      try{
+        const {latitude, longitude} = pos.coords;
+        const data = await fetchWeatherByCoords(latitude, longitude);
+        applyWeatherResult(data, "Automatisch erkannter Standort");
+      }catch(err){
+        toast("Wetterabruf fehlgeschlagen (evtl. kein Internet). Bitte manuell wählen.");
+      }
+    },
+    ()=>{ toast("Standortzugriff verweigert. Bitte manuell wählen oder Ort eingeben."); },
+    {timeout:8000}
+  );
+}
+async function fetchWeatherByCoords(lat, lon){
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation&timezone=auto`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Wetter-API Fehler");
+  const json = await res.json();
+  return { tempC: json.current.temperature_2m, precipitation: json.current.precipitation };
+}
+async function searchLocationWeather(){
+  const name = document.getElementById("loc-input").value.trim();
+  if (!name){ toast("Bitte einen Ortsnamen eingeben."); return; }
+  toast("Suche Ort …");
+  try{
+    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=de&format=json`;
+    const geoRes = await fetch(geoUrl);
+    if (!geoRes.ok) throw new Error("Geocoding-Fehler");
+    const geoJson = await geoRes.json();
+    if (!geoJson.results || !geoJson.results.length){
+      toast(`Ort „${name}“ nicht gefunden.`);
+      return;
+    }
+    const place = geoJson.results[0];
+    const data = await fetchWeatherByCoords(place.latitude, place.longitude);
+    applyWeatherResult(data, `${place.name}${place.country ? ", "+place.country : ""}`);
+  }catch(err){
+    toast("Ortssuche/Wetterabruf fehlgeschlagen (evtl. kein Internet). Bitte manuell wählen.");
+  }
+}
+function applyWeatherResult(data, label){
+  currentWeather = {
+    tempCategory: tempToCategory(data.tempC),
+    regenfest: (data.precipitation||0) > 0,
+    source: "Open-Meteo",
+    label,
+    tempC: data.tempC
+  };
+  updateWeatherStatusUI();
+  toast("Wetter aktualisiert.");
+}
+
+/* ================= OUTFIT-LOGIK ================= */
+function initOutfitUI(){
+  fillSelect(document.getElementById("o-anlass"), ANLAESSE);
+  document.getElementById("btn-outfit-vorschlag").addEventListener("click", ()=> generateOutfits(true));
+  document.getElementById("btn-outfit-neu").addEventListener("click", ()=> generateOutfits(false));
+}
+function currentWeatherTags(){
+  const tags = [currentWeather.tempCategory];
+  if (currentWeather.regenfest) tags.push("regenfest");
+  return tags;
+}
+function itemMatchesAnlassWetter(item, stilAllowed, weatherTags){
+  const stilOk = (item.stil_tags||[]).some(t=>stilAllowed.includes(t));
+  const wetterOk = (item.wetter_eignung||[]).some(w=>weatherTags.includes(w));
+  return stilOk && wetterOk;
+}
+function colorScore(pieces){
+  const colors = [];
+  pieces.forEach(p=> (p.farben||[]).forEach(c=>colors.push(c)));
+  const nonNeutral = [...new Set(colors.filter(c=>!NEUTRALE_FARBEN.includes(c)))];
+  let score = 0;
+  if (nonNeutral.length <= 1) score += 3;
+  else if (nonNeutral.length === 2) score += 2;
+  const colorSet = new Set(colors);
+  CLASSIC_PAIRS.forEach(([a,b])=>{ if (colorSet.has(a) && colorSet.has(b)) score += 1; });
+  score += pieces.filter(p=>p.lieblingsstueck).length * 0.5;
+  return score;
+}
+function buildOutfitCandidates(anlass, weatherTags){
+  const verfuegbar = items.filter(i=> i.standort === "Schrank");
+  const stilAllowed = ANLASS_TO_STIL[anlass] || [anlass];
+  const passend = verfuegbar.filter(i=> itemMatchesAnlassWetter(i, stilAllowed, weatherTags));
+
+  const oberteile = passend.filter(i=>i.kategorie==="Oberteil");
+  const hosen = passend.filter(i=>i.kategorie==="Hose");
+  const roecke = passend.filter(i=>i.kategorie==="Rock");
+  const kleider = passend.filter(i=>i.kategorie==="Kleid");
+  const schuhe = passend.filter(i=>i.kategorie==="Schuhe");
+  const jacken = passend.filter(i=>i.kategorie==="Jacke");
+  const accessoires = passend.filter(i=>i.kategorie==="Accessoire");
+
+  const combos = [];
+  kleider.forEach(kleid=>{
+    schuhe.forEach(schuh=>{ combos.push([kleid, schuh]); });
+  });
+  oberteile.forEach(ob=>{
+    [...hosen, ...roecke].forEach(unten=>{
+      schuhe.forEach(schuh=>{ combos.push([ob, unten, schuh]); });
+    });
+  });
+
+  const braucheJacke = weatherTags.includes("kalt") || weatherTags.includes("regenfest");
+  const enriched = combos.map(base=>{
+    let pieces = base.slice();
+    let warning = null;
+    if (braucheJacke){
+      let jacke = jacken.find(j=> !weatherTags.includes("regenfest") || (j.wetter_eignung||[]).includes("regenfest"));
+      if (jacke) pieces.push(jacke);
+      else if (jacken.length){ pieces.push(jacken[0]); }
+      else warning = weatherTags.includes("regenfest")
+        ? "Keine passende regenfeste Jacke im Bestand gefunden."
+        : "Keine passende Jacke für kaltes Wetter im Bestand gefunden.";
+    }
+    if (accessoires.length){
+      const acc = accessoires.slice().sort((a,b)=> colorScore([...pieces,b]) - colorScore([...pieces,a]))[0];
+      if (acc && colorScore([...pieces, acc]) >= colorScore(pieces)) pieces.push(acc);
+    }
+    return { pieces, warning, score: colorScore(pieces) + Math.random()*0.3 };
+  });
+
+  enriched.sort((a,b)=> b.score - a.score);
+  return enriched;
+}
+let outfitPool = [];
+let outfitPoolIdx = 0;
+function generateOutfits(fresh){
+  const anlass = document.getElementById("o-anlass").value;
+  const weatherTags = currentWeatherTags();
+  const contextKey = anlass+"|"+weatherTags.join(",");
+  if (fresh || contextKey !== lastOutfitContext){
+    outfitPool = buildOutfitCandidates(anlass, weatherTags);
+    outfitPoolIdx = 0;
+    lastOutfitContext = contextKey;
+  } else {
+    outfitPoolIdx += 3;
+    if (outfitPoolIdx >= outfitPool.length) outfitPoolIdx = 0;
+  }
+  renderOutfitResults(anlass, weatherTags);
+}
+function renderOutfitResults(anlass, weatherTags){
+  const container = document.getElementById("outfit-results");
+  container.innerHTML = "";
+  const btnMore = document.getElementById("btn-outfit-neu");
+
+  if (!outfitPool.length){
+    btnMore.style.display = "none";
+    container.appendChild(el("div",{class:"card empty-state"},
+      el("span",{class:"emoji"},"🙈"),
+      el("p",null, `Für „${anlass}“ bei ${WETTER_LABEL[weatherTags[0]]}${weatherTags.includes("regenfest")?" + Regen":""} wurden keine passenden Kombinationen im Schrank gefunden.`),
+      el("p",{class:"status-text"}, "Tipp: Weise mehr Kleidungsstücken passende Stil-Tags und Wetter-Eignungen zu, oder schau in der Einkaufsliste nach erkannten Lücken.")
+    ));
+    return;
+  }
+  btnMore.style.display = outfitPool.length > 3 ? "inline-flex" : "none";
+
+  const slice = outfitPool.slice(outfitPoolIdx, outfitPoolIdx+3);
+  slice.forEach(combo=>{
+    const piecesGrid = el("div",{class:"outfit-pieces"},
+      combo.pieces.map(p=> el("div",{class:"piece"},
+        el("div",{class:"icon"}, KAT_ICON[p.kategorie]||"👕"),
+        el("div",{class:"name"}, (p.lieblingsstueck?"⭐ ":"")+p.name),
+        el("div",{class:"kat"}, p.kategorie),
+        el("div",{class:"swatches", style:"justify-content:center;margin-top:4px;"}, (p.farben||[]).map(swatchNode))
+      ))
+    );
+    const card = el("div",{class:"outfit-card"},
+      el("h3",null, `${anlass} · ${WETTER_LABEL[weatherTags[0]]}${weatherTags.includes("regenfest")?" + 🌧️":""}`),
+      piecesGrid,
+      combo.warning ? el("div",{class:"warn-badge"}, "⚠️ "+combo.warning) : null
+    );
+    container.appendChild(card);
+  });
+}
+
+/* ================= STYLING-TIPPS ================= */
+const TIPS = [
+  { title:"🎨 Farbkombinationen", items:[
+    "Neutrale Basis (Schwarz, Weiß, Grau, Beige, Marineblau) + 1 Akzentfarbe wirkt immer stimmig.",
+    "Faustregel: maximal 3 Farben pro Outfit, um es ruhig wirken zu lassen.",
+    "Komplementärfarben aus dem Farbkreis (Blau–Orange, Rot–Grün, Gelb–Lila) erzeugen spannungsvolle Kontraste.",
+    "Monochrome Looks (mehrere Töne derselben Farbe) wirken elegant und strecken optisch.",
+    "Warme Töne (Rot, Orange, Gelb, Braun) und kühle Töne (Blau, Grün, Lila, Grau) harmonieren am besten innerhalb ihrer Familie."
+  ]},
+  { title:"🧺 Kapselgarderobe-Prinzipien", items:[
+    "Ziel: ca. 30–40 vielseitige Teile, die sich beliebig kombinieren lassen.",
+    "Jedes Teil sollte mit mindestens 2–3 anderen Teilen im Schrank kombinierbar sein.",
+    "Basics (Oberteile, Hosen, Schuhe) in neutralen Farben bilden das Fundament.",
+    "Statement-Teile und Farbtupfer ergänzen die Basis, aber sollten in der Minderheit bleiben.",
+    "Qualität vor Quantität: lieber wenige, gut sitzende Teile als viele Kompromisse."
+  ]},
+  { title:"👔 Tipps je Anlass", items:[
+    "Business: klare Linien, gedeckte Farben, hochwertige Materialien, dezente Accessoires.",
+    "Freizeit: Komfort und Layering – Kombination aus lässigen und etwas strukturierteren Teilen.",
+    "Sport: funktionale Materialien, Bewegungsfreiheit, atmungsaktive Stoffe.",
+    "Festlich: Textur, Glanz oder ein besonderes Statement-Piece, Rest bewusst zurückhaltend.",
+    "Date: Balance zwischen leger und besonders – ein Teil darf „Wow“ sagen, der Rest bleibt tragbar."
+  ]},
+  { title:"📐 Proportionen &amp; Silhouette", items:[
+    "Ein enges + ein weites Teil kombinieren, statt oben und unten gleichzeitig voluminös zu tragen.",
+    "Hohe Taille betonen (z. B. Oberteil in Hose stecken) streckt optisch die Silhouette.",
+    "A-Linien-Schnitte kaschieren, körpernahe Schnitte betonen Formen bewusst.",
+    "Lange, offene Schichten (z. B. lange Cardigans) wirken streckend.",
+    "Proportional ausgewogene Outfits wirken oft stimmiger als rein trendbasierte Kombinationen."
+  ]}
+];
+function renderTips(){
+  const container = document.getElementById("tips-container");
+  container.innerHTML = "";
+  TIPS.forEach(group=>{
+    container.appendChild(el("div",{class:"tip-card"},
+      el("h3",null, group.title),
+      el("ul",null, group.items.map(t=>el("li",null,t)))
+    ));
+  });
+}
+
+/* ================= LÜCKEN-ERKENNUNG & EINKAUFSLISTE ================= */
+function detectGaps(){
+  const gaps = [];
+  const verfuegbar = items.filter(i=>i.standort==="Schrank");
+
+  ANLAESSE.forEach(anlass=>{
+    const stilAllowed = ANLASS_TO_STIL[anlass] || [anlass];
+    ["warm","mild","kalt"].forEach(wetter=>{
+      const weatherTags = [wetter];
+      const passend = verfuegbar.filter(i=>itemMatchesAnlassWetter(i, stilAllowed, weatherTags));
+      const hatOben = passend.some(i=>i.kategorie==="Oberteil");
+      const hatUnten = passend.some(i=>["Hose","Rock"].includes(i.kategorie));
+      const hatKleid = passend.some(i=>i.kategorie==="Kleid");
+      const hatSchuhe = passend.some(i=>i.kategorie==="Schuhe");
+      const komplett = hatSchuhe && ((hatOben && hatUnten) || hatKleid);
+      if (!komplett){
+        gaps.push(`Kein vollständiges ${anlass}-Outfit für ${WETTER_LABEL[wetter].replace(/^\S+\s/,"")} Wetter vorhanden.`);
+      }
+    });
+  });
+
+  const hatRegenjacke = items.some(i=>i.kategorie==="Jacke" && (i.wetter_eignung||[]).includes("regenfest"));
+  if (!hatRegenjacke) gaps.push("Keine regenfeste Jacke in der Garderobe vorhanden.");
+
+  const hatRegenschuhe = items.some(i=>i.kategorie==="Schuhe" && (i.wetter_eignung||[]).includes("regenfest"));
+  if (!hatRegenschuhe) gaps.push("Keine regenfesten Schuhe in der Garderobe vorhanden.");
+
+  ["Oberteil","Hose","Schuhe"].forEach(kat=>{
+    const hatBasic = items.some(i=>i.kategorie===kat && (i.farben||[]).some(f=>NEUTRALE_FARBEN.includes(f)));
+    if (!hatBasic) gaps.push(`Kein Basic-${kat} in neutraler Farbe vorhanden.`);
+  });
+
+  return [...new Set(gaps)];
+}
+function syncAutoShoppingSuggestions(gaps){
+  const existingTexts = new Set(shoppingList.map(s=>s.text));
+  let changed = false;
+  gaps.forEach(g=>{
+    if (!existingTexts.has(g)){
+      shoppingList.push({id:uid(), text:g, done:false, source:"auto"});
+      changed = true;
+    }
+  });
+  if (changed) saveShopping();
+}
+function renderGapsAndShopping(){
+  const gaps = detectGaps();
+  syncAutoShoppingSuggestions(gaps);
+
+  const gapList = document.getElementById("gap-list");
+  gapList.innerHTML = "";
+  document.getElementById("gap-empty").style.display = gaps.length ? "none" : "block";
+  gaps.forEach(g=> gapList.appendChild(el("li",null, "⚠️ "+g)));
+
+  renderShoppingList();
+}
+function renderShoppingList(){
+  const ul = document.getElementById("shopping-list");
+  ul.innerHTML = "";
+  if (!shoppingList.length){
+    ul.appendChild(el("li",null, el("span",{class:"txt status-text"}, "Deine Einkaufsliste ist leer.")));
+    return;
+  }
+  shoppingList.forEach(entry=>{
+    const li = el("li",{class: entry.done ? "done" : ""},
+      el("input",{type:"checkbox", ...(entry.done?{checked:"checked"}:{}), onchange:()=>{
+        entry.done = !entry.done; saveShopping(); renderShoppingList();
+      }}),
+      el("span",{class:"txt"}, entry.text),
+      entry.source==="auto" ? el("span",{class:"tag-auto"},"erkannt") : null,
+      el("button",{class:"btn danger small", onclick:()=>{
+        shoppingList = shoppingList.filter(e=>e.id!==entry.id); saveShopping(); renderShoppingList();
+      }},"✕")
+    );
+    ul.appendChild(li);
+  });
+}
+function initShoppingForm(){
+  document.getElementById("btn-add-shopping").addEventListener("click", addManualShoppingEntry);
+  document.getElementById("shopping-input").addEventListener("keydown",(e)=>{
+    if (e.key==="Enter"){ e.preventDefault(); addManualShoppingEntry(); }
+  });
+}
+function addManualShoppingEntry(){
+  const input = document.getElementById("shopping-input");
+  const text = input.value.trim();
+  if (!text) return;
+  shoppingList.push({id:uid(), text, done:false, source:"manuell"});
+  saveShopping();
+  input.value = "";
+  renderShoppingList();
+}
+
+/* ================= EXPORT / IMPORT ================= */
+function initDataTab(){
+  document.getElementById("btn-export").addEventListener("click", exportData);
+  document.getElementById("import-file").addEventListener("change", importData);
+  document.getElementById("btn-reset").addEventListener("click", resetAllData);
+}
+function exportData(){
+  const payload = {
+    kleiderschrank: items.map(i=>({
+      id:i.id, name:i.name, kategorie:i.kategorie, farben:i.farben||[],
+      stil_tags:i.stil_tags||[], saison:i.saison||[], wetter_eignung:i.wetter_eignung||[],
+      standort:i.standort, lieblingsstueck: !!i.lieblingsstueck
+    })),
+    einkaufsliste: shoppingList
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "kleiderschrank-export.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast("Export erstellt.");
+}
+function importData(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const json = JSON.parse(reader.result);
+      if (!json || !Array.isArray(json.kleiderschrank)) throw new Error("Ungültige Struktur");
+      if (!confirm("Import überschreibt die aktuell gespeicherten Daten. Fortfahren?")) return;
+      items = json.kleiderschrank.map(i=>({
+        id: i.id || uid(),
+        name: i.name || "Unbenannt",
+        kategorie: KATEGORIEN.includes(i.kategorie) ? i.kategorie : "Sonstiges",
+        farben: Array.isArray(i.farben) ? i.farben : [],
+        stil_tags: Array.isArray(i.stil_tags) ? i.stil_tags : [],
+        saison: Array.isArray(i.saison) ? i.saison : [],
+        wetter_eignung: Array.isArray(i.wetter_eignung) ? i.wetter_eignung : [],
+        standort: STANDORTE.includes(i.standort) ? i.standort : "Schrank",
+        lieblingsstueck: !!i.lieblingsstueck
+      }));
+      shoppingList = Array.isArray(json.einkaufsliste) ? json.einkaufsliste.map(s=>({
+        id: s.id || uid(), text: s.text || "", done: !!s.done, source: s.source || "manuell"
+      })) : [];
+      saveItems(); saveShopping();
+      renderGallery(); renderGapsAndShopping();
+      toast("Import erfolgreich.");
+    }catch(err){
+      toast("Import fehlgeschlagen: ungültige JSON-Datei.");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+}
+function resetAllData(){
+  if (!confirm("Wirklich ALLE Kleidungsstücke und die Einkaufsliste unwiderruflich löschen?")) return;
+  items = [];
+  shoppingList = [];
+  saveItems(); saveShopping();
+  renderGallery(); renderGapsAndShopping();
+  toast("Alle Daten gelöscht.");
+}
+
+/* ================= INIT ================= */
+document.addEventListener("DOMContentLoaded", ()=>{
+  initFilterSelects();
+  initForm();
+  initWeatherUI();
+  initOutfitUI();
+  initShoppingForm();
+  initDataTab();
+  renderTips();
+  renderGallery();
+  renderGapsAndShopping();
+  tryAutoWeather();
+});
+</script>
+</body>
+</html>
