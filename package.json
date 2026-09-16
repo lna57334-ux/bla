@@ -1,0 +1,17 @@
+{
+  "name": "event-planner",
+  "version": "1.0.0",
+  "description": "Lokales Event-Planungs-Tool fuer private Feiern (Filmabende, Geburtstage, Weihnachten, ...)",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

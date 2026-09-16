@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Event-Planer</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>🎉 Event-Planer</h1>
+        <button id="btn-new-event" class="btn btn-primary btn-block">+ Neues Event</button>
+      </div>
+      <ul id="event-list" class="event-list"></ul>
+    </aside>
+
+    <main class="content" id="content">
+      <div class="empty-state" id="empty-state">
+        <p>Waehle links ein Event aus oder lege ein neues an.</p>
+      </div>
+
+      <div id="event-detail" class="event-detail hidden">
+        <header class="event-header">
+          <div>
+            <h2 id="event-title"></h2>
+            <p class="event-meta" id="event-meta"></p>
+          </div>
+          <div class="event-header-actions">
+            <button id="btn-edit-event" class="btn btn-secondary">Bearbeiten</button>
+            <button id="btn-delete-event" class="btn btn-danger">Loeschen</button>
+          </div>
+        </header>
+
+        <div class="progress-block">
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+          <span id="progress-label" class="progress-label"></span>
+        </div>
+
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="uebersicht">Uebersicht</button>
+          <button class="tab-btn" data-tab="gaeste">Gaeste</button>
+          <button class="tab-btn" data-tab="checkliste">Checkliste</button>
+          <button class="tab-btn" data-tab="einkauf">Einkaufsliste</button>
+          <button class="tab-btn" data-tab="budget">Budget</button>
+          <button class="tab-btn" data-tab="zeitplan">Zeitplan</button>
+        </nav>
+
+        <section class="tab-panel" id="tab-uebersicht">
+          <div class="card">
+            <h3>Notizen</h3>
+            <p id="event-notes" class="notes-text"></p>
+          </div>
+          <div class="card-grid">
+            <div class="card stat-card">
+              <span class="stat-value" id="stat-guests">0</span>
+              <span class="stat-label">Gaeste</span>
+            </div>
+            <div class="card stat-card">
+              <span class="stat-value" id="stat-checklist">0/0</span>
+              <span class="stat-label">Checkliste erledigt</span>
+            </div>
+            <div class="card stat-card">
+              <span class="stat-value" id="stat-budget-planned">0 €</span>
+              <span class="stat-label">Budget geplant</span>
+            </div>
+            <div class="card stat-card">
+              <span class="stat-value" id="stat-budget-actual">0 €</span>
+              <span class="stat-label">Budget tatsaechlich</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel hidden" id="tab-gaeste">
+          <form id="form-guest" class="inline-form">
+            <input type="text" name="name" placeholder="Name" required />
+            <input type="text" name="notes" placeholder="Anmerkungen (Allergien, Mitbringsel, ...)" />
+            <button type="submit" class="btn btn-primary">Hinzufuegen</button>
+          </form>
+          <ul id="guest-list" class="item-list"></ul>
+        </section>
+
+        <section class="tab-panel hidden" id="tab-checkliste">
+          <div class="checklist-toolbar">
+            <label for="checklist-filter">Filter:</label>
+            <select id="checklist-filter">
+              <option value="alle">Alle Kategorien</option>
+            </select>
+          </div>
+          <form id="form-checklist" class="inline-form">
+            <select name="category" id="checklist-category-select" required></select>
+            <input type="text" name="description" placeholder="Beschreibung" required />
+            <input type="date" name="dueDate" title="Faelligkeitsdatum (optional)" />
+            <button type="submit" class="btn btn-primary">Hinzufuegen</button>
+          </form>
+          <div id="checklist-groups"></div>
+        </section>
+
+        <section class="tab-panel hidden" id="tab-einkauf">
+          <p class="hint-text">Alle Punkte der Kategorie "Einkaufsliste" aus der Checkliste erscheinen hier automatisch. Zusaetzliche Eintraege koennen direkt ergaenzt werden.</p>
+          <form id="form-shopping" class="inline-form">
+            <input type="text" name="description" placeholder="Neuer Einkaufslisten-Eintrag" required />
+            <button type="submit" class="btn btn-primary">Hinzufuegen</button>
+          </form>
+          <ul id="shopping-list" class="item-list"></ul>
+        </section>
+
+        <section class="tab-panel hidden" id="tab-budget">
+          <form id="form-budget" class="inline-form">
+            <input type="text" name="name" placeholder="Posten (z.B. Deko, Essen, ...)" required />
+            <input type="number" step="0.01" min="0" name="plannedCost" placeholder="Geplant (€)" />
+            <input type="number" step="0.01" min="0" name="actualCost" placeholder="Tatsaechlich (€)" />
+            <button type="submit" class="btn btn-primary">Hinzufuegen</button>
+          </form>
+          <table class="budget-table">
+            <thead>
+              <tr><th>Posten</th><th>Geplant (€)</th><th>Tatsaechlich (€)</th><th></th></tr>
+            </thead>
+            <tbody id="budget-body"></tbody>
+            <tfoot>
+              <tr>
+                <td>Gesamt</td>
+                <td id="budget-total-planned">0.00</td>
+                <td id="budget-total-actual">0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </section>
+
+        <section class="tab-panel hidden" id="tab-zeitplan">
+          <form id="form-timeline" class="inline-form">
+            <input type="text" name="description" placeholder="Aufgabe" required />
+            <input type="number" name="offsetDays" placeholder="Tage relativ zum Event (z.B. -3, -1, 0)" required />
+            <button type="submit" class="btn btn-primary">Hinzufuegen</button>
+          </form>
+          <ul id="timeline-list" class="item-list"></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="modal-title">Neues Event</h3>
+      <form id="form-event">
+        <label>Titel<input type="text" name="title" required /></label>
+        <label>Datum<input type="date" name="date" /></label>
+        <label>Ort<input type="text" name="location" /></label>
+        <label>Notizen<textarea name="notes" rows="3"></textarea></label>
+        <div class="modal-actions">
+          <button type="button" id="btn-cancel-event" class="btn btn-secondary">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
